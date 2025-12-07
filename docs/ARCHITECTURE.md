@@ -26,10 +26,11 @@ This is a browser-based player that downloads channel content to disk but does N
 **Flow:**
 1. Device receives channel assignment via MQTT
 2. Node server downloads channel ZIP from API
-3. Extracts `channel.json` to disk
-4. Downloads all content assets
-5. **If Playlist:** Downloads playlist JSON and all referenced media
-6. **Cleanup:** Removes old channels (different IDs)
+3. Extracts to disk
+4. **For Simple/Daily channels (cloud):** Reads `channel.json` and downloads all content assets
+5. **For Content Experience Builder channels (standard):** Parses `Deployment.xml` and downloads playlist content
+6. **If Playlist:** Downloads playlist JSON and all referenced media
+7. **Cleanup:** Removes old channels (different IDs)
 
 **Files:**
 - `device_browser/server.js` - `/channel/download` endpoint
@@ -39,11 +40,15 @@ This is a browser-based player that downloads channel content to disk but does N
 **Storage Structure:**
 ```
 Content/
-├── {channelId}.{version}/
+├── {channelId}.{version}/          # Simple/Daily (UUID-based)
 │   ├── channel.json
 │   ├── {contentId}.mp4
 │   ├── {contentId}.jpg
 │   └── {playlistId}.json (if playlist)
+├── {channelName}.{version}/        # Content Experience Builder (name-based)
+│   ├── Deployment.xml
+│   ├── {contentId}.mp4
+│   └── {contentId}.jpg
 ```
 
 ### 3. Playlist Support
@@ -78,9 +83,18 @@ Content/
 
 **Example:**
 ```
-Before: channel-A.1/, channel-B.2/, channel-C.3/
-After:  channel-C.3/  (only current channel kept)
+Before: 03a3b726-c1bf-4b3b-bfed-1d54a715f18a.1/, AMAZON.2/, CHROMA.45/
+After:  CHROMA.45/  (only current channel kept)
 ```
+
+### 6. Content Experience Builder Channel Support
+
+**How it works:**
+- CXB channels use channel names (e.g., "AMAZON") instead of UUIDs
+- Contains `Deployment.xml` instead of `channel.json`
+- Parses XML to extract playlist URLs from `<Path>` tags
+- Downloads playlists and all referenced media files
+- Supports same file types as Simple/Daily channels
 
 ### 5. BrightSign Spoofing
 
