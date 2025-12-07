@@ -1,0 +1,39 @@
+{
+  "compilerOptions": {
+    "checkJs": false,
+    "allowJs": false,
+    "alwaysStrict": true,
+    "allowSyntheticDefaultImports": true,
+
+    "baseUrl": ".",
+    "downlevelIteration": true,
+    "lib": ["DOM", "ESNext", "DOM.Iterable"],
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": false,
+    "jsx": "react",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmit": false,
+    "resolveJsonModule": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "paths": {
+      "@core/*": ["core/src/*"],
+      "@browser/*": ["device_browser/src/*"],
+      "@brightsign/*": ["device_brightsign/src/*"],
+      "@bs-nodeserver/*": ["device_brighitsign/node-server/src/*"],
+      "@node-server/*": ["node-server/src/*"],
+      "@ssp/*": ["device_SSSP/src/*"],
+      "@webOS/*": ["device_webOS/src/*"]
+    },
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "useUnknownInCatchVariables": false,
+    "strictNullChecks": true,
+    "target": "ES5",
+    "strictFunctionTypes": true
+  },
+  "typeRoots": ["core/src/@types"]
+}

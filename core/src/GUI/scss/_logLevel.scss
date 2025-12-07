@@ -1,0 +1,119 @@
+.levels {
+  text-align: center;
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.log-level {
+  position: relative;
+  width: 100%;
+
+  button {
+    -webkit-appearance: none;
+    border: none;
+    background-color: transparent;
+    padding: 0;
+    width: 100%;
+  }
+
+  button:focus {
+    border: none;
+    outline: none;
+
+    .indicator {
+      border: solid 3px $purple !important;
+    }
+  }
+
+  span {
+    display: block;
+    margin: 1rem auto;
+    font-size: 1rem;
+
+    &.disabled {
+      color: $grey_med !important;
+    }
+  }
+
+  img.disabled {
+    filter: grayscale(1);
+  }
+
+  // this is only for the trace icon
+  &:last-of-type img.disabled {
+    filter: saturate(0) brightness(2.2);
+  }
+
+  .indicator-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+
+    &::before,
+    &::after {
+      content: '';
+      display: block;
+      width: 50%;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 3px;
+      background-color: $grey_light;
+    }
+
+    &::before {
+      left: 0;
+    }
+
+    &::after {
+      right: 0;
+    }
+
+    &.isFirst {
+      &:before {
+        display: none;
+      }
+    }
+
+    &.isLast {
+      &:after {
+        display: none;
+      }
+    }
+
+    .indicator {
+      width: 25px;
+      height: 25px;
+      background-color: $grey_light;
+      border-radius: 50%;
+      position: relative;
+      z-index: 2;
+    }
+  }
+
+  .indicator-wrapper.included {
+    &::after,
+    &::before {
+      background-color: $grey_darkest;
+    }
+    .indicator {
+      background-color: $grey_darkest;
+    }
+  }
+
+  .indicator-wrapper.selected {
+    &::before {
+      background-color: $grey_darkest;
+    }
+
+    &::after {
+      background-color: $grey_light;
+    }
+    .indicator {
+      background-color: $grey_darkest;
+    }
+  }
+}

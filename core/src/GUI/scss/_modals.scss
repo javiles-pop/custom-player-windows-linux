@@ -1,0 +1,208 @@
+.shim-modal-fullscreen {
+  display: none;
+  &.active {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 101;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .inner-container {
+    position: relative;
+    z-index: 102;
+  }
+
+  &::before {
+    background: $black;
+    opacity: 0.75;
+    top: 50%;
+    left: 50%;
+    display: block;
+    content: '';
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    z-index: 101;
+    transform: translate(-50%, -50%);
+  }
+
+  .shim-modal {
+    z-index: 102;
+    height: auto;
+    width: calc(900px + 3rem);
+    padding: 2rem;
+    background: white;
+    max-height: 90vh;
+    overflow: scroll;
+  }
+
+  h4 {
+    text-transform: uppercase;
+    color: $grey_med;
+    font-size: 100%;
+  }
+}
+
+.shim-modal#timers {
+  .timer-type {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 8px;
+
+    span.type-label {
+      margin-right: 1.7rem;
+      text-align: right;
+      color: $grey_darkest;
+      margin-left: 6.8rem;
+    }
+
+    .fwi-radio-group {
+      width: 55%;
+      justify-content: flex-start;
+    }
+
+    .fwi-radio-button-label {
+      margin-left: 5px;
+      margin-right: 4.5rem;
+    }
+  }
+
+  .weekdays {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    span {
+      margin-right: 1.7rem;
+      text-align: right;
+      margin-left: 6.8rem;
+      color: $grey_darkest;
+    }
+  }
+  .weekdays button {
+    padding: 0.75rem;
+    font-size: 20px;
+    -webkit-appearance: none;
+    background-color: $grey_extra_light;
+    @include focusable;
+    margin: 0.25rem;
+    border-radius: 4px;
+
+    &.selected {
+      background-color: $purple;
+      color: $white;
+    }
+  }
+}
+
+.shim-modal#access-code-modal {
+  padding: 3rem 2rem;
+
+  h2 {
+    color: $grey_med;
+    text-transform: uppercase;
+    font-weight: 500;
+    font-size: 1.25rem;
+    font-family: 'Montserrat', sans-serif;
+  }
+
+  #access-code-modal-input__label {
+    margin: 1rem auto;
+    transform: scale(1.25);
+
+    input[type='password'] {
+      font-size: 3rem;
+      padding-bottom: 8px;
+      color: $grey_darkest;
+    }
+  }
+}
+
+#component-sheet {
+  text-align: left;
+}
+
+.shim-modal#firmware_update_modal {
+  .text-container {
+    margin-bottom: 2rem;
+  }
+
+  .spinner-container {
+    width: 160px;
+    height: 160px;
+    margin: 2rem auto;
+  }
+
+  .progress-bar {
+    width: 80%;
+    height: 1rem;
+    margin: 2rem auto;
+    background: $grey_extra_light;
+    position: relative;
+    border-radius: 1.5rem;
+    overflow: hidden;
+
+    .inner-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 1rem;
+      background-color: $purple;
+      // transition: width 0.25s ease-in-out;
+    }
+  }
+}
+
+.shim-modal#timezone-options {
+  section {
+    padding: 0;
+  }
+  .content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .scroll-container {
+    height: calc(80vh - 3rem);
+    overflow: scroll;
+    padding: 6px; // allows for the focus state to be fully visible
+  }
+
+  .buttons {
+    display: flex;
+    flex-direction: column;
+    width: 47%;
+  }
+
+  button.btn__time-zone {
+    @include focusable();
+    background: transparent;
+    display: block;
+    appearance: none;
+    font-size: $base_font_size;
+    border: none;
+    outline: none;
+    width: calc(100% - 8px);
+    text-align: left;
+    margin: auto;
+    padding: 0.75rem 0.5rem;
+
+    &.selected {
+      color: $purple;
+      font-weight: 700;
+    }
+  }
+}
+
+.shim-modal#proxy__new-custom-host-modal {
+  .user-feedback {
+    padding-top: 16px;
+  }
+}

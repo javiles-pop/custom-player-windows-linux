@@ -1,0 +1,48 @@
+{
+  "plugins": ["react", "react-hooks", "prettier", "@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:react/recommended", "plugin:@typescript-eslint/recommended"],
+  "env": {
+    "es2020": true,
+    "browser": true,
+    "node": true
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2020,
+    "sourceType": "module",
+    "project": "./tsconfig.json",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "globals": {
+    "after": true,
+    "before": true,
+    "beforeEach": true,
+    "cy": true,
+    "describe": true,
+    "DeviceAPI": true,
+    "expect": true,
+    "it": true,
+    "process": true,
+    "React": true,
+    "window": true
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "rules": {
+        "no-undef": "off",
+        "react-hooks/exhaustive-deps": "error",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unsafe-argument": "error"
+      }
+    }
+  ],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  }
+}

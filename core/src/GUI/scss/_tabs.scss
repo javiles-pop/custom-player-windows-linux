@@ -1,0 +1,15 @@
+.tab {
+  @include focusable;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  font-size: 1rem;
+}
+
+.tab.active {
+  background-color: var(--purple-opacity-08);
+}
+
+.tab-panel {
+  background-color: var(--purple-opacity-08);
+  padding: 1rem;
+}

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <%= htmlWebpackPlugin.options.deviceSDKs %>
+  <title>Content Player for <%= process.env.DEVICE_TYPE %></title>
+  <style>.hidden{display:none}#force-menu-open{position:fixed;bottom:0;left:0;width:30px;height:30px;z-index:65535;outline:none;border:none;background:transparent;color:transparent;font-size:1rem;}</style>
+</head>
+
+<body style="background: #778089" class="<%= process.env.DEVICE_TYPE.toLowerCase() %>">
+  <div id="root"></div>
+  <div id="portal"></div>
+  <div id="on-screen-logs-container" class="hidden"></div>
+  <input id="on-screen-console" class="hidden"></input>
+  <button id="force-menu-open">&#9776;</button>
+	<!--
+      This HTML file is a template.
+      If you open it directly in the browser, you will see an empty page.
+
+      You can add webfonts, meta tags, or analytics to this file.
+      The build step will place the bundled scripts into the <body> tag.
+
+      To begin the development, run `npm start` or `yarn start`.
+      To create a production bundle, use `npm run build` or `yarn build`.
+    -->
+</body>
+
+</html>

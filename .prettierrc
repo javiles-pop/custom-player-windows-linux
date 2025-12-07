@@ -1,0 +1,10 @@
+printWidth: 120
+trailingComma: es5
+singleQuote: true
+overrides:
+  - files: "*.{js,jsx,scss,ts,tsx}"
+    options:
+      singleQuote: true
+  - files: "*.md"
+    options:
+      proseWrap: always

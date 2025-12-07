@@ -1,0 +1,15 @@
+/* Hide unwanted menu items in simplified mode */
+#shim-menu-row__timers,
+#shim-menu-row__access-code,
+#shim-menu-row__updates,
+#shim-menu-row__logging,
+#shim-menu-row__display,
+#shim-menu-row__advanced {
+  display: none !important;
+}
+
+/* Hide the player iframe completely */
+#player-iframe {
+  display: none !important;
+  pointer-events: none !important;
+}

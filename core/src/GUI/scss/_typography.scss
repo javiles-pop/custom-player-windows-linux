@@ -1,0 +1,16 @@
+@font-face {
+  font-family: 'Ubanist';
+  src: url('../assets/font/Urbanist.ttf');
+  font-style: normal;
+  font-style: bold;
+}
+
+@font-face {
+  font-family: 'Ubanist Italic';
+  src: url('../assets/font/Urbanist-Italic.ttf');
+  font-style: italic;
+}
+
+body {
+  font-family: "Urbanist", sans-serif;
+}

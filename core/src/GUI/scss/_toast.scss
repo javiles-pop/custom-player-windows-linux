@@ -1,0 +1,94 @@
+.toastContainer {
+  position: fixed;
+  z-index: 102;
+  width: 420px;
+  right: 1rem;
+  top: 1rem;
+  max-height: 50vh;
+}
+
+.toast {
+  position: relative;
+  border-radius: 0.5rem;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.25);
+  text-align: left;
+  font-size: 80%;
+  margin-bottom: 0.75rem;
+  color: var(--white);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(15px);
+  right: -450px;
+  animation: toastEntryAndExit 4.75s ease-in-out forwards 1;
+}
+
+.toast span {
+  display: block;
+}
+
+.toast .title {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.toast .description {
+  font-size: 0.75rem;
+}
+
+.toast .inner-container {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.toast.info {
+  .title {
+    color: #00a7f7;
+  }
+  .inner-container {
+    background: rgba(#00a7f7, 0.125);
+  }
+}
+
+.toast.success {
+  .title {
+    color: #2ecc71;
+  }
+  .inner-container {
+    background-color: rgba(#2ecc71, 0.125);
+  }
+}
+
+.toast.warning {
+  .title {
+    color: #f1c40f;
+  }
+  .inner-container {
+    background-color: rgba(#f1c40f, 0.125);
+  }
+}
+
+.toast.error {
+  .title {
+    color: #e74c3c;
+  }
+  .inner-container {
+    background-color: rgba(#e74c3c, 0.125);
+  }
+}
+
+@keyframes toastEntryAndExit {
+  0% {
+    right: -450px;
+  }
+
+  10% {
+    right: 0;
+  }
+
+  95% {
+    right: 0;
+  }
+
+  100% {
+    right: -450px;
+  }
+}

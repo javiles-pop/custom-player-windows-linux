@@ -1,0 +1,133 @@
+.segmented-number {
+  &-input {
+    position: relative;
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
+    margin: 1rem 0;
+
+    span.label {
+      margin-right: 1rem;
+      font-size: $base_font_size;
+      color: $grey_darkest;
+    }
+
+    &:focus {
+      outline: none;
+
+      .segmented-number-display {
+        box-shadow: $focus_border;
+        outline: none;
+      }
+    }
+
+    &.standard {
+      @include focusable();
+      position: relative;
+      border-radius: 4px;
+      display: inline-flex;
+      justify-content: flex-start;
+      align-items: baseline;
+      margin: 1rem 0;
+
+      input[data-type='number'] {
+        font-family: 'Montserrat', sans-serif;
+        margin: 0 0.25rem;
+        text-align: center;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border: solid 3px transparent;
+        font-size: $base_font_size;
+        height: 2.8rem;
+        width: 2.5rem;
+        background-color: #eff3f6;
+        border-radius: 4px;
+        caret-color: transparent;
+
+        &:focus {
+          outline: none;
+          border-color: $purple;
+          background-color: white;
+        }
+      }
+    }
+  }
+
+  &-value {
+    margin: 0 0.25rem;
+    padding: 1rem 1rem;
+    text-align: center;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border: solid 3px transparent;
+    font-size: $base_font_size;
+    height: 2.8rem;
+    width: 2.5rem;
+    background-color: #eff3f6;
+    border-radius: 4px;
+
+    &.focused {
+      border-color: $purple !important;
+      background-color: white;
+    }
+  }
+
+  &-display {
+    max-width: 400px;
+    border-radius: 5px;
+    border: solid 3px transparent;
+
+    &.disabled {
+      .segmented-number-value {
+        background-color: $grey_extra_light;
+      }
+    }
+
+    &.password {
+      .segmented-number-value {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+    }
+  }
+}
+
+.segmented-number-input.time {
+  display: flex;
+  margin-left: 20px;
+
+  input[data-type='number'] {
+    opacity: 0;
+    // opacity: 0.5;
+    top: 0;
+    left: 0;
+    width: 50px;
+    position: absolute;
+    z-index: 1;
+  }
+
+  .segmented-number-display {
+    display: flex;
+
+    &.has-errors .segmented-number-value {
+      border-color: rgba($error, 0.5);
+      background-color: rgba($error, 0.2);
+    }
+  }
+  .segmented-number-value {
+    position: relative;
+    margin: 0 0.25rem;
+    &:nth-of-type(2) {
+      margin-right: 28px;
+      &::after {
+        content: ':';
+        position: absolute;
+        color: #778089;
+        left: 3.2rem;
+        font-size: $base_font_size;
+      }
+    }
+  }
+}

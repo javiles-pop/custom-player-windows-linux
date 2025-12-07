@@ -1,0 +1,301 @@
+.shim-menu-fullscreen {
+  display: none;
+  &.active {
+    display: block;
+  }
+
+  &::before {
+    background: $black;
+    opacity: 0.75;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9;
+    display: block;
+    content: '';
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #shim-menu,
+  .shim-modal {
+    box-shadow: 0 0 2rem $black;
+    position: fixed;
+    width: 900px;
+    height: 900px;
+    background: white;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+
+  .shim-status-bar {
+    font-size: 0.67rem;
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+
+    & > div {
+      padding: 0.45rem;
+      display: inline-block;
+      flex-basis: 33%;
+    }
+    .app-version {
+      text-align: center;
+    }
+    .network-status {
+      align-items: center;
+      background: transparent;
+      border-radius: 3px;
+      border: solid 3px transparent;
+      color: $white;
+      display: inline-flex;
+      flex-basis: 100px;
+      justify-content: center;
+      margin-left: calc(33% - 100px);
+      outline: none;
+      text-align: right;
+
+      &:focus {
+        border: solid 3px $purple;
+      }
+
+      &.disconnected {
+        background-color: $error;
+      }
+
+      & > span {
+        margin-right: 10px;
+      }
+    }
+  }
+
+  .header-gradient {
+    height: 2px;
+    width: 100%;
+    background: var(--theme-gradient-2);
+  }
+
+  .banner {
+    height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    transition: height 0.25s ease-in-out;
+
+    &.child {
+      height: 60px;
+      transition: height 0.25s ease-in-out;
+    }
+
+    .fwi-logo {
+      position: absolute;
+      top: 0.5rem;
+      left: 0.5rem;
+    }
+    .sign-name {
+      font-weight: bold;
+      font-size: 1.25rem;
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+
+    .back-button {
+      position: absolute;
+      // top: 0.75rem;
+      left: 0.75rem;
+
+      button {
+        height: 40px;
+        font-size: 1.25rem;
+        -webkit-appearance: none;
+        background: transparent;
+        color: $white;
+        border-radius: 3px;
+        border: none;
+        outline: none;
+        border: solid 3px transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        &:focus {
+          border: solid 3px $purple;
+        }
+
+        img {
+          width: 30px;
+          height: 30px;
+        }
+      }
+    }
+
+    .exit-menu-button {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      button {
+        height: 40px;
+        font-size: 1.25rem;
+        -webkit-appearance: none;
+        background: transparent;
+        color: $white;
+        border-radius: 3px;
+        border: none;
+        outline: none;
+        border: solid 3px transparent;
+
+        &:focus {
+          border: solid 3px $purple;
+        }
+
+        &:disabled {
+          opacity: 0.25;
+        }
+      }
+    }
+  }
+
+  .shim-menu-row {
+    position: relative;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    flex: 1;
+    // padding: 1.43rem 1.5rem;
+    padding: 0 1.5rem;
+    color: $grey_darkest;
+    background: white;
+    border: solid 3px transparent;
+    outline: none;
+
+    .icon {
+      position: relative;
+      font-size: 0.5em;
+      width: 30px;
+      height: 30px;
+
+      &.badged {
+        &::after {
+          content: '';
+          display: block;
+          background: $error;
+          width: 15px;
+          height: 15px;
+          position: absolute;
+          top: -2.5px;
+          right: -2.5px;
+          border-radius: 50%;
+          border: solid 2.5px white;
+          z-index: 1;
+        }
+      }
+    }
+
+    .title {
+      width: 40%;
+      text-align: left;
+      font-weight: 500;
+    }
+
+    .details {
+      flex-basis: 50%;
+      text-align: right;
+      display: flex;
+      justify-content: flex-end;
+      align-items: baseline;
+      color: $grey_med;
+      opacity: 0.75;
+
+      .detail-text {
+        font-size: 90%;
+        font-style: italic;
+      }
+
+      .nav-hint {
+        margin-left: 2rem;
+      }
+    }
+
+    &:not(:last-of-type):not(:focus)::after {
+      content: '';
+      border-bottom: solid 1px $grey_light;
+      width: calc(100% - 3rem);
+      position: absolute;
+      top: 100%;
+      z-index: 0;
+    }
+
+    &:focus {
+      border: solid 3px $purple;
+    }
+  }
+
+  .inner-container {
+    position: relative;
+    height: 100%;
+
+    .shim-menu-home {
+      display: flex;
+      width: 900px;
+      max-width: 90vw;
+      height: calc(100% - 154px);
+      flex-direction: column;
+    }
+  }
+
+  h4 {
+    text-transform: uppercase;
+    color: #7a848d;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 2rem 0;
+
+    // indent all siblings of this h4 by 24px;
+    & + .indentation-wrapper {
+      margin-left: 24px;
+    }
+  }
+
+  section {
+    padding: 3rem 3.4rem;
+    border-bottom: solid 2px $grey_light;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+
+  p.spacer {
+    height: 20px;
+  }
+}
+
+.menu-container {
+  // padding: 1rem;
+  // padding: 20px 34px;
+  background: white;
+  height: calc(100% - 88px);
+  overflow: scroll;
+}
+
+.user-feedback {
+  display: inline-block;
+  margin-left: 1rem;
+  opacity: 0;
+  max-width: 40%;
+}
+
+.button-with-feedback {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}

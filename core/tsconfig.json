@@ -1,0 +1,7 @@
+{
+  "extends": "../tsconfig.base",
+  "compilerOptions": {
+    "baseUrl": ".."
+  },
+  "include": ["src", "../device_brightsign/node-server/src/BrightsignObjects.d.ts"],
+}

@@ -1,0 +1,36 @@
+label.checkbox-label {
+  text-align: right;
+  text-shadow: 0 0 5px rgb(255, 255, 255);
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 20px;
+  margin-left: 0;
+  margin-top: 2rem;
+
+  span {
+    color: $grey_med;
+    margin-left: 0.5rem;
+  }
+
+  input[type='checkbox'] {
+    width: 1.5rem;
+    height: 1.5rem;
+    -webkit-appearance: none;
+    border: solid 2px $grey_light;
+    display: inline-block;
+    background: $grey_extra_light;
+    border-radius: 3px;
+    padding: 5px;
+    position: relative;
+    @include focusable();
+
+    &:checked {
+      background-color: $purple;
+      background-image: url('../assets/icons/success-check.svg');
+      background-position: center;
+      background-size: 70%;
+      background-repeat: no-repeat;
+      border-color: $purple;
+    }
+  }
+}

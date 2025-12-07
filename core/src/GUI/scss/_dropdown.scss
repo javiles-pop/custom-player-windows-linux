@@ -1,0 +1,119 @@
+select {
+  display: block;
+  border: none;
+  padding: 10px;
+  min-width: 350px;
+  border-radius: 5px;
+  position: relative;
+  background-color: $grey_extra_light;
+  @include focusable;
+}
+
+.dropdown {
+  text-align: left;
+  width: 100%;
+  max-width: 400px;
+  position: relative;
+  margin: 10px 0;
+  margin-bottom: 1rem;
+
+  .select {
+    @include focusable;
+    border: solid 3px transparent;
+    background-color: $grey_extra_light;
+    border-radius: 5px;
+    padding: 13px 5px;
+    margin-left: 0;
+
+    input[type='checkbox'] {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      // opacity: 0.5;
+    }
+
+    &.focused {
+      border: solid 3px $purple;
+    }
+
+    &.disabled {
+      opacity: 0.4;
+      border: solid 3px $grey_light;
+    }
+
+    // &.open {
+    .selected-option {
+      font-weight: 500;
+      font-size: $base_font_size;
+      padding: 0 10px;
+    }
+    // }
+
+    &::after {
+      content: '\0025bc';
+      content: '▼';
+      position: absolute;
+      right: 1rem;
+      display: inline-block;
+      pointer-events: none;
+      font-size: $base_font_size;
+      top: 50%;
+      transform: translateY(-50%) scale(1.1, 0.55);
+      color: $grey_dark;
+      transition: transform 250ms ease;
+    }
+
+    &.open::after {
+      transform: translateY(-50%) scale(1.1, -0.55);
+    }
+  }
+
+  .dropdown-container {
+    position: absolute;
+    left: 0;
+    top: 102%;
+    display: none;
+    width: 100%;
+    font-size: $base_font_size;
+    background-color: white;
+    box-shadow: 0 10px 15px rgba($black, 0.5);
+    z-index: 2;
+    max-height: 530px;
+    overflow-y: scroll;
+
+    &.open {
+      display: block;
+    }
+
+    button {
+      background-color: transparent;
+      font-size: $base_font_size;
+      width: 100%;
+      text-align: left;
+      padding: 13px 10px;
+      display: block;
+      -webkit-appearance: none;
+      border: solid 3px transparent;
+      outline: none;
+
+      &:focus {
+        border: solid 3px $purple;
+      }
+
+      &.selected {
+        color: $purple;
+      }
+
+      &.isOther:not(:focus) {
+        border-bottom-color: $grey_light;
+      }
+    }
+  }
+}
+
+.timezone-dropdown {
+  margin: 2rem 0;
+}
