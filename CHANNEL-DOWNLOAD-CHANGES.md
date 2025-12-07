@@ -158,7 +158,8 @@ yarn dev:simplified
 - File system storage at `C:\Users\Public\Documents\Four Winds Interactive\Content`
 - Authentication token retrieval from Redux state
 - ZIP extraction and content asset downloading
-- Automatic cleanup of old channel versions
+- **Playlist Support**: Downloads playlist JSON and all referenced videos/images with unique object IDs
+- **Automatic Cleanup**: Removes all old channels (different channel IDs) to save disk space
 - Error handling and logging
 - Cross-platform support (Windows/Linux)
 

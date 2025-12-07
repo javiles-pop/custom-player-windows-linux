@@ -40,7 +40,9 @@
 - Parses `channel.json` and downloads all content assets
 - Determines file extensions from content-type headers or URLs
 - Stores assets with proper filenames: `{contentId}.{extension}`
-- Automatically cleans up old channel versions
+- **Playlist Support**: Downloads playlist JSON and all referenced videos/images
+- Extracts unique object IDs from URLs to prevent file overwrites
+- **Automatic Cleanup**: Removes all old channels (different channel IDs) to save disk space
 
 ### 5. Downloaded Content Structure
 **Example Directory:** `c4307909-4121-4f4c-b661-e89598073676.2/`
@@ -180,7 +182,9 @@ None - all core features are implemented and working!
 ✅ Cross-platform path support (Windows/Linux)  
 ✅ Message-based architecture for channel assignment  
 ✅ Channel update detection and download  
-✅ Automatic cleanup of old versions  
+✅ Playlist JSON downloaded with all referenced media  
+✅ Unique object IDs extracted from URLs  
+✅ Automatic cleanup of old channels (different IDs)  
 ✅ Error handling and logging  
 
 ## 📊 Test Results
