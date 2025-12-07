@@ -4,17 +4,19 @@ Browser-based content player for Windows and Linux systems, built on the Poppulo
 
 ## Overview
 
-This is a browser-based player that runs on Windows and Linux systems, providing content playback capabilities with cloud connectivity via MQTT. The player spoofs BrightSign for compatibility with existing cloudFeatures.json configurations.
+This is a browser-based player that runs on Windows and Linux systems, providing device management and channel download capabilities with cloud connectivity via MQTT. The player spoofs BrightSign for compatibility with existing cloudFeatures.json configurations.
+
+**Note:** This player does NOT render content. It downloads channel metadata and assets to disk for use by a separate rendering service.
 
 ## Features
 
 - ✅ **Device Activation & Provisioning** - Auto-activation via serial number or invite code
 - ✅ **Real-time MQTT Communication** - Cloud connectivity via Harmony
-- ✅ **Channel Download & Storage** - Downloads channel content and assets locally
+- ✅ **Channel Download & Storage** - Downloads channel metadata and assets locally
 - ✅ **System Information Collection** - Auto-detects hardware (CPU, OS, serial number)
-- ✅ **Channel URL Display** - Shows current channel URL on screen
 - ✅ **Network Configuration** - WiFi and ethernet support
 - ✅ **Simplified UI** - Streamlined menu with essential features only
+- ❌ **Content Rendering** - NOT included (use separate rendering service)
 
 ## Requirements
 
@@ -117,13 +119,13 @@ shim-master/
 3. If auto-activation fails, prompts for invite code
 4. Connects to Harmony via MQTT for cloud communication
 
-### Channel Playback
+### Channel Download
 
 1. Device receives channel assignment via MQTT
 2. Node server downloads channel ZIP from API
 3. Extracts channel.json and downloads content assets
 4. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `/var/lib/fwi/content` (Linux)
-5. Displays channel URL on screen
+5. Separate rendering service reads files from disk
 
 ### BrightSign Spoofing
 

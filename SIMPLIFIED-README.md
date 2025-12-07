@@ -7,10 +7,10 @@ This is a simplified version of the device_browser app that removes unnecessary 
 ✅ **Activation Flow** - Device registration and provisioning
 ✅ **MQTT Communication** - Cloud connectivity via Harmony
 ✅ **Channel Download** - Automatic download and extraction of channel content
-✅ **Channel URL Display** - Shows the current channel URL in large text on screen
 ✅ **System Information** - Auto-detects hardware (CPU, OS, serial number)
 ✅ **Network Settings** - WiFi configuration (stub)
 ✅ **About Page** - Device information and serial number
+❌ **Content Rendering** - NOT included (v6-wplt iframe disabled)
 
 ## What's Removed/Hidden
 
@@ -20,7 +20,7 @@ This is a simplified version of the device_browser app that removes unnecessary 
 ❌ Display Orientation controls - Hidden via CSS
 ❌ Advanced settings - Hidden via CSS
 ❌ Logging configuration - Hidden via CSS
-❌ Player iframe visibility - Hidden via CSS (still loads for MQTT)
+❌ Player iframe (v6-wplt) - Completely disabled (not rendered)
 ❌ Bundle Analyzer - Removed from webpack config
 
 ## Usage
@@ -93,47 +93,47 @@ Unwanted menu items are hidden via `src/simplified.css`:
 - Advanced settings menu item
 - Player iframe (hidden but still loads for MQTT connectivity)
 
-### Channel URL Display
+### Channel Download
 
-**Main Display (`src/injectChannelURL.js`):**
+**Download Handler (`src/injectChannelURL.js`):**
 - Listens for MQTT shadow updates via `window.postMessage`
-- Receives `CurrentURL` from Shadow.ts when MQTT delta arrives
-- Extracts channel ID and displays as `https://cloudtest1.fwi-dev.com/channels/{channelId}`
-- Shows large centered text on main screen
-- Hides automatically when menu is open (uses MutationObserver)
-- Responds to `REQUEST_CHANNEL_URL` messages from menu components
-- **Does NOT use iframe - all updates come from shadow**
+- Receives channel assignment from Shadow.ts when MQTT delta arrives
+- Triggers channel download via Node server
+- Downloads channel ZIP and extracts to disk
+- Downloads all content assets referenced in channel.json
+- Stores at `C:\Users\Public\Documents\Four Winds Interactive\Content\{channelId}.{version}/`
 
 **Menu Display:**
 - `ShimMenuHome.tsx` - Shows channel URL preview on main menu
 - `SimplifiedShimMenuPageDeployment.tsx` - Shows full channel URL on deployment page
-- Both components listen for shadow updates and request current value on mount
-- All three displays (main + 2 menu) stay in sync via postMessage
+- Both components listen for shadow updates and display channel info
 
 ### Files Modified/Created
 
 **Device Browser:**
 - `webpack.config.simplified.js` - Uses regular index.tsx, adds CopyWebpackPlugin for injectChannelURL.js, injects simplified.css and script tag
-- `src/simplified.css` - Hides unwanted UI elements (#player-iframe, menu items)
-- `src/injectChannelURL.js` - Main display script that shows channel URL and manages visibility
+- `src/simplified.css` - Hides unwanted UI elements (menu items)
+- `src/injectChannelURL.js` - Handles channel download via Node server
 - `src/SimplifiedShimMenuPageDeployment.tsx` - Read-only deployment page in menu
 - `package.json` - Added simplified build scripts (start:simplified, dev:simplified, build:simplified)
 
 **Core:**
 - `core/src/MQTT/Shadow.ts` - Modified to send postMessage when CurrentURL or channel changes in shadow
 - `core/src/GUI/components/ShimMenu/ShimMenuHome.tsx` - Updated to listen for shadow updates and display channel URL
+- `core/src/GUI/components/ShimApp/ShimApp.tsx` - Disabled CPWebFrame iframe (v6-wplt not rendered)
 
 ## How It Works
 
 1. **MQTT receives channel update** from cloud
 2. **Shadow.ts processes the update** and extracts channel ID
-3. **Shadow.ts posts message** with `{type: 'SHADOW_UPDATE', CurrentURL: 'https://cloudtest1.fwi-dev.com/channels/{id}'}`
-4. **All three displays listen** for the message and update simultaneously:
-   - Main screen display (injectChannelURL.js)
-   - Menu home preview (ShimMenuHome.tsx)
-   - Menu deployment page (SimplifiedShimMenuPageDeployment.tsx)
-5. **Menu components request current value** on mount using `REQUEST_CHANNEL_URL` message
-6. **Main display responds** with current channel URL
+3. **Shadow.ts posts message** with channel assignment
+4. **injectChannelURL.js downloads channel** via Node server:
+   - Downloads channel ZIP from API
+   - Extracts channel.json
+   - Downloads all content assets
+   - Stores locally on disk
+5. **Menu components display** channel info when opened
+6. **Separate rendering service** reads downloaded files from disk
 
 ## Debugging
 
@@ -145,20 +145,18 @@ Debug logging has been removed for production. If you need to debug:
 
 ## Current Status
 
-✅ **Complete** - Channel URL displays on screen in large text
 ✅ **Complete** - Real-time updates when channel changes via MQTT
-✅ **Complete** - Menu shows correct channel URL (home and deployment pages)
-✅ **Complete** - Display hides when menu is open and on activation screen
-✅ **Complete** - MQTT connection maintained (no iframe needed for display)
+✅ **Complete** - Menu shows channel info (home and deployment pages)
+✅ **Complete** - MQTT connection maintained
 ✅ **Complete** - Menu items hidden via CSS
 ✅ **Complete** - Activation flow functional
 ✅ **Complete** - Network and About pages accessible
-✅ **Complete** - Debug logging removed
 ✅ **Complete** - Channel download with ZIP extraction
 ✅ **Complete** - Content asset downloading
 ✅ **Complete** - Automatic cleanup of old versions
 ✅ **Complete** - System information collection (CPU, OS, serial number)
 ✅ **Complete** - Cross-platform support (Windows/Linux)
+✅ **Complete** - v6-wplt iframe disabled (no content rendering)
 
 ## Environment Options
 

@@ -200,7 +200,8 @@ const ShimApp = () => {
   return (
     <>
       {needsInitPlaceholder ? <Initializing /> : null}
-      {isValidURLFormat(currentURL?.toString() ?? '') ? (
+      {/* Iframe disabled - using separate rendering service */}
+      {/* {isValidURLFormat(currentURL?.toString() ?? '') ? (
         <CPWebFrame
           src={currentURL!}
           id="player-iframe"
@@ -209,7 +210,7 @@ const ShimApp = () => {
             opacity: needsInitPlaceholder ? 0 : 1,
           }}
         />
-      ) : null}
+      ) : null} */}
 
       <AccessCodeModal />
       <ShimMenu active={shimMenuActive && userCanAccessMenu} />
