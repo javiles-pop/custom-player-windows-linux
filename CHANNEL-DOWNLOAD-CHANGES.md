@@ -153,39 +153,20 @@ yarn dev:simplified
 
 ### ✅ Completed
 - Node server with CORS support on port 3001
-- `/channel/download` endpoint to bypass CORS
+- `/channel/download` endpoint with proper API URL (api-cloudtest1.fwi-dev.com)
 - Message handlers for CHANNEL_ASSIGNED and CHANNEL_UPDATE
 - File system storage at `C:\Users\Public\Documents\Four Winds Interactive\Content`
 - Authentication token retrieval from Redux state
+- ZIP extraction and content asset downloading
+- Automatic cleanup of old channel versions
 - Error handling and logging
-
-### ⚠️ Blocked
-**Issue:** Channel download API endpoint returns HTML instead of JSON
-
-**Details:**
-- Endpoint: `GET /channels/v1/companies/{companyId}/channels/{channelId}/download`
-- Returns: HTTP 200 with HTML (Channels UI page)
-- Expected: JSON with `{channelUrl, channelName, version}`
-- Auth: Bearer token is valid and being sent correctly
-
-**Server logs show:**
-```
-Fetching: https://cloudtest1.fwi-dev.com/channels/v1/companies/f459b428-a15e-465b-b7e6-793f3d9c9ac5/channels/c4307909-4121-4f4c-b661-e89598073676/download
-Token: eyJraWQiOiJHV08xYW9a...
-Response status: 200
-Response preview: <!doctype html>
-```
-
-**Possible Solutions:**
-1. Verify endpoint URL with backend team
-2. Check if different authentication method needed
-3. Use alternative endpoint or get channel data from MQTT shadow
-4. Endpoint may not be implemented in cloudtest1 environment
+- Cross-platform support (Windows/Linux)
 
 ## Notes
 - Server must be running before app starts
 - Channel downloads happen automatically on assignment/update
-- Files are named: `{channelId}.{version}.zip`
-- Old versions are not automatically deleted
+- Files are extracted to: `{channelId}.{version}/` directory
+- Content assets are downloaded and saved with proper file extensions
+- Old versions are automatically cleaned up
 - Node.js handles cross-platform path differences automatically
 - CORS is configured to allow requests from localhost:2999

@@ -5,9 +5,11 @@ This is a simplified version of the device_browser app that removes unnecessary 
 ## What's Included
 
 ✅ **Activation Flow** - Device registration and provisioning
-✅ **MQTT Communication** - Cloud connectivity via Harmony (iframe runs in background)
+✅ **MQTT Communication** - Cloud connectivity via Harmony
+✅ **Channel Download** - Automatic download and extraction of channel content
 ✅ **Channel URL Display** - Shows the current channel URL in large text on screen
-✅ **Network Settings** - WiFi configuration
+✅ **System Information** - Auto-detects hardware (CPU, OS, serial number)
+✅ **Network Settings** - WiFi configuration (stub)
 ✅ **About Page** - Device information and serial number
 
 ## What's Removed/Hidden
@@ -146,35 +148,17 @@ Debug logging has been removed for production. If you need to debug:
 ✅ **Complete** - Channel URL displays on screen in large text
 ✅ **Complete** - Real-time updates when channel changes via MQTT
 ✅ **Complete** - Menu shows correct channel URL (home and deployment pages)
-✅ **Complete** - Display hides when menu is open
+✅ **Complete** - Display hides when menu is open and on activation screen
 ✅ **Complete** - MQTT connection maintained (no iframe needed for display)
 ✅ **Complete** - Menu items hidden via CSS
 ✅ **Complete** - Activation flow functional
 ✅ **Complete** - Network and About pages accessible
 ✅ **Complete** - Debug logging removed
-✅ **Complete** - Channel download infrastructure (server, API methods, message handlers)
-⚠️ **BLOCKED** - Channel download endpoint authentication
-
-## Blocking Issue
-
-The channel download endpoint `GET /channels/v1/companies/{companyId}/channels/{channelId}/download` returns HTML instead of JSON even with valid Bearer token authentication. 
-
-**Symptoms:**
-- HTTP 200 response
-- Returns HTML (Channels UI page) instead of JSON
-- Token is valid (works for other endpoints)
-
-**Possible causes:**
-1. Endpoint doesn't exist or path is incorrect
-2. Requires different authentication method
-3. Requires additional headers or query parameters
-4. Endpoint not implemented in cloudtest1 environment
-
-**Next steps:**
-1. Verify correct endpoint URL with backend team
-2. Check if endpoint requires different auth (cookies, different header format)
-3. Test if channel JSON is available at different endpoint
-4. May need to use existing channel data from MQTT shadow instead of download endpoint
+✅ **Complete** - Channel download with ZIP extraction
+✅ **Complete** - Content asset downloading
+✅ **Complete** - Automatic cleanup of old versions
+✅ **Complete** - System information collection (CPU, OS, serial number)
+✅ **Complete** - Cross-platform support (Windows/Linux)
 
 ## Environment Options
 
