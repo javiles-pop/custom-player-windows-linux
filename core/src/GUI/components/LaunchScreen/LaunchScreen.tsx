@@ -237,7 +237,7 @@ export default function LaunchScreen() {
           <br />
 
           <div className="flex">
-            {window.DeviceAPI.getManufacturer() === DeviceManufacturer.BrightSign ? (
+            {window.DeviceAPI.supportsWifiConfig ? (
               <Button
                 id="wifi-config-button"
                 color={UIColor.Grey_med}

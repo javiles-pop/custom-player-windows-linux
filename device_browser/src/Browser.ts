@@ -23,7 +23,7 @@ class BrowserAPI extends DeviceAPI {
   supportsProxy = true;
   supportsTCPConfig = false;
   supportsVirtualKeyboard = false;
-  supportsWifiConfig = true;
+  supportsWifiConfig = false;
   supportsVideoWall = true;
   supportsStorageEncryption = true;
   // softwareUpdateValidationPattern = /^(.+)autorun\.zip$/;

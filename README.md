@@ -12,10 +12,11 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 
 - ✅ **Device Activation & Provisioning** - Auto-activation via serial number or invite code
 - ✅ **Real-time MQTT Communication** - Cloud connectivity via Harmony
-- ✅ **Channel Download & Storage** - Downloads channel metadata and assets locally
+- ✅ **Channel Download & Storage** - Downloads channel metadata, assets, and playlists locally
+- ✅ **Playlist Support** - Downloads playlist JSON and all referenced videos/images
 - ✅ **System Information Collection** - Auto-detects hardware (CPU, OS, serial number)
-- ✅ **Network Configuration** - WiFi and ethernet support
-- ✅ **Simplified UI** - Streamlined menu with essential features only
+- ✅ **Automatic Channel Cleanup** - Removes old channels when downloading new ones
+- ✅ **Simplified UI** - Streamlined menu with essential features only (network managed by OS)
 - ❌ **Content Rendering** - NOT included (use separate rendering service)
 
 ## Requirements
@@ -124,8 +125,10 @@ shim-master/
 1. Device receives channel assignment via MQTT
 2. Node server downloads channel ZIP from API
 3. Extracts channel.json and downloads content assets
-4. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `/var/lib/fwi/content` (Linux)
-5. Separate rendering service reads files from disk
+4. **Playlist Support**: If content type is "Playlist", downloads playlist JSON and all referenced media files
+5. **Automatic Cleanup**: Removes all old channels (different channel IDs) to save disk space
+6. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `/var/lib/fwi/content` (Linux)
+7. Separate rendering service reads files from disk
 
 ### BrightSign Spoofing
 
@@ -230,9 +233,9 @@ yarn server
 
 BrightSign environment variable warnings are suppressed in webpack config. If you see them, restart the dev server.
 
-### Network Errors on Activation Screen
+### Network Configuration
 
-The network stub endpoints return empty data. This is expected for browser-based players.
+Network configuration is handled by the operating system (Windows/Linux). The "Configure Network" button is disabled for browser-based players. Use your OS network settings to configure WiFi or Ethernet.
 
 ### Wrong Company Type
 
@@ -240,6 +243,10 @@ If activation fails:
 - **Development:** Ensure you're using a CloudTest1 company
 - **Production:** Ensure you're using a production company (not CloudTest)
 - Verify the `ENVIRONMENT` variable matches your company type
+
+### Device Stuck on "Checking Player Registration"
+
+If the device gets stuck after deleting from cloud and re-provisioning, refresh the browser (F5). The app will automatically reload and continue the activation process.
 
 ## Contributing
 
@@ -251,6 +258,28 @@ If activation fails:
 ## License
 
 Proprietary - Poppulo/Four Winds Interactive
+
+## Recent Updates
+
+### Playlist Support (Latest)
+- Added support for downloading playlist JSON files
+- Automatically downloads all videos/images referenced in playlists
+- Extracts unique object IDs from URLs to prevent file overwrites
+
+### Channel Management
+- Implemented automatic cleanup of old channels
+- Only keeps the currently assigned channel to save disk space
+- Removes both old channel directories and ZIP files
+
+### Network Configuration
+- Disabled network configuration UI for browser players
+- Network settings managed by Windows/Linux OS
+- Removed "Configure Network" button from activation screen and status bar
+
+### Device Deactivation Fix
+- Fixed issue where device would get stuck after deactivation
+- Browser now properly reloads when device is deleted from cloud
+- Improved re-provisioning flow
 
 ## Support
 

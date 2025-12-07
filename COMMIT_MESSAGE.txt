@@ -1,0 +1,21 @@
+Disable v6-wplt iframe to prevent unnecessary resource consumption
+
+The player is designed to download channel metadata and assets for use
+by a separate rendering service. The v6-wplt iframe was loading and
+consuming resources (memory, CPU, network) without being used.
+
+Changes:
+- Disabled CPWebFrame iframe in ShimApp.tsx (commented out)
+- Updated README.md to clarify player does not render content
+- Updated SIMPLIFIED-README.md to reflect iframe is disabled
+- Removed references to "Channel URL Display" feature
+- Added note about separate rendering service
+
+This reduces resource usage significantly as v6-wplt and all its
+dependencies (Segment analytics, content assets, etc.) no longer load.
+
+The player now only:
+- Activates device via MQTT
+- Downloads channel metadata and assets to disk
+- Provides device management UI (menu)
+- Stores files at: C:\Users\Public\Documents\Four Winds Interactive\Content\

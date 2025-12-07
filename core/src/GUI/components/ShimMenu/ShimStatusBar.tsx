@@ -37,9 +37,9 @@ function ShimStatusBar({ history }: RouteComponentProps) {
         </div>
         <button
           className={networkClassNames}
-          data-navigable={platform === DeviceManufacturer.BrightSign}
+          data-navigable={window.DeviceAPI.supportsWifiConfig}
           onClick={() => {
-            platform === DeviceManufacturer.BrightSign ? history.push(`/network`) : null;
+            window.DeviceAPI.supportsWifiConfig ? history.push(`/network`) : null;
           }}
         >
           <span>{networkStatus}</span>
