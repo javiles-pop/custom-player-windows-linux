@@ -46,20 +46,26 @@ function getFileExtension(url, contentType, fallbackType) {
   return fallbackType === 'Image' ? '.jpg' : '.mp4';
 }
 
-// Helper: Cleanup old channel versions
+// Helper: Cleanup old channels and versions
 function cleanupOldVersions(channelId, currentVersion) {
   try {
     const files = fs.readdirSync(CONTENT_DIR);
+    const currentChannelPrefix = `${channelId}.${currentVersion}`;
+    
     files.forEach(file => {
-      if (file.startsWith(`${channelId}.`) && !file.includes(`.${currentVersion}`)) {
-        const fullPath = path.join(CONTENT_DIR, file);
-        if (fs.statSync(fullPath).isDirectory()) {
-          fs.rmSync(fullPath, { recursive: true, force: true });
-          console.log(`Cleaned up old version: ${file}`);
-        } else if (file.endsWith('.zip')) {
-          fs.unlinkSync(fullPath);
-          console.log(`Deleted old ZIP: ${file}`);
-        }
+      // Skip if it's the current channel
+      if (file.startsWith(currentChannelPrefix)) return;
+      
+      // Remove any other channel directories or ZIPs
+      const fullPath = path.join(CONTENT_DIR, file);
+      const stats = fs.statSync(fullPath);
+      
+      if (stats.isDirectory() && file.match(/^[a-f0-9-]+\.\d+$/)) {
+        fs.rmSync(fullPath, { recursive: true, force: true });
+        console.log(`Removed old channel: ${file}`);
+      } else if (file.endsWith('.zip') && file.match(/^[a-f0-9-]+\.\d+\.zip$/)) {
+        fs.unlinkSync(fullPath);
+        console.log(`Deleted old channel ZIP: ${file}`);
       }
     });
   } catch (err) {
