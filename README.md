@@ -125,8 +125,12 @@ shim-master/
 
 1. Device receives channel assignment via MQTT
 2. Node server downloads channel ZIP from API
-3. Extracts channel.json and downloads content assets
-4. **Playlist Support**: If content type is "Playlist", downloads playlist JSON and all referenced media files
+3. Extracts channel metadata (channel.json or Deployment.xml) and downloads content assets
+4. **Content Download**:
+   - **Simple/Daily channels**: Downloads content from channel.json
+   - **Content Experience Builder**: Parses Deployment.xml for content URLs
+     - Playlist URLs: Downloads playlist JSON and all referenced media
+     - Direct content URLs: Downloads images, HTML, and other content directly
 5. **Automatic Cleanup**: Removes all old channels (different channel IDs) to save disk space
 6. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `/var/lib/fwi/content` (Linux)
 7. Separate rendering service reads files from disk
@@ -284,7 +288,13 @@ Proprietary - Poppulo/Four Winds Interactive
 
 ## Recent Updates
 
-### Multi-Format Content Support (Latest)
+### Content Experience Builder Direct Content Support (Latest)
+- Added support for direct content URLs in CXB channels
+- Downloads ImageContent, HtmlContent, and other content types from Deployment.xml
+- Handles both playlist URLs and direct download URLs
+- Extracts object IDs from URLs for proper file naming
+
+### Multi-Format Content Support
 - Added support for audio files (.mp3)
 - Added support for documents (.pdf, .ppt, .pptx)
 - Added support for fonts (.ttf, .otf)

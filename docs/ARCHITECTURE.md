@@ -28,9 +28,10 @@ This is a browser-based player that downloads channel content to disk but does N
 2. Node server downloads channel ZIP from API
 3. Extracts to disk
 4. **For Simple/Daily channels (cloud):** Reads `channel.json` and downloads all content assets
-5. **For Content Experience Builder channels (standard):** Parses `Deployment.xml` and downloads playlist content
-6. **If Playlist:** Downloads playlist JSON and all referenced media
-7. **Cleanup:** Removes old channels (different IDs)
+5. **For Content Experience Builder channels (standard):** Parses `Deployment.xml` and downloads all content from `<Path>` tags
+   - Playlist URLs: Downloads playlist JSON and all referenced media
+   - Direct content URLs: Downloads content directly (images, HTML, etc.)
+6. **Cleanup:** Removes old channels (different IDs)
 
 **Files:**
 - `device_browser/server.js` - `/channel/download` endpoint
@@ -92,9 +93,12 @@ After:  CHROMA.45/  (only current channel kept)
 **How it works:**
 - CXB channels use channel names (e.g., "AMAZON") instead of UUIDs
 - Contains `Deployment.xml` instead of `channel.json`
-- Parses XML to extract playlist URLs from `<Path>` tags
-- Downloads playlists and all referenced media files
-- Supports same file types as Simple/Daily channels
+- Parses XML to extract content URLs from `<Path>` tags in `<DynamicUrl>` sections
+- Supports two types of content URLs:
+  - **Playlist URLs**: Contains `/playlist/` and `/json` - downloads playlist and all referenced media
+  - **Direct content URLs**: Contains `/objects/{id}/download` - downloads content directly (images, HTML, etc.)
+- Extracts object IDs from URLs for proper file naming
+- Supports all file types including ImageContent, HtmlContent, VideoContent, etc.
 
 ### 5. BrightSign Spoofing
 
