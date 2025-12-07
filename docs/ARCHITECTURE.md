@@ -122,6 +122,40 @@ Determined by:
 2. Content-Type header (e.g., `video/mp4`)
 3. Fallback based on type (Image → `.jpg`, Video → `.mp4`)
 
+### Supported File Types by Channel
+
+**Super Simple Channels:**
+- Video: .mp4, .webm, .mov
+- Image: .jpg, .png, .svg, .gif, .webp
+- .dsapp files
+- Playlists (JSON)
+
+**Daily Channels:**
+- All Super Simple types
+- Multiple items per channel
+
+**Content Experience Builder:**
+- Video: .mp4, .webm, .mov
+- Image: .jpg, .png, .svg, .gif, .webp
+- Audio: .mp3
+- Documents: .pdf, .ppt, .pptx
+- Web: .html
+- Fonts: .ttf, .otf
+- Data: .json, .xml
+- .dsapp files
+- Playlists (JSON)
+
+### Content-Type Mapping
+
+The server maps MIME types to file extensions:
+- Images: image/jpeg → .jpg, image/png → .png, image/svg+xml → .svg
+- Video: video/mp4 → .mp4, video/webm → .webm
+- Audio: audio/mpeg → .mp3
+- Documents: application/pdf → .pdf, application/vnd.ms-powerpoint → .ppt
+- Fonts: font/ttf → .ttf, font/opentype → .otf
+- Data: application/json → .json, application/xml → .xml
+- Web: text/html → .html
+
 ## API Endpoints
 
 **Node Server (localhost:3001):**

@@ -34,16 +34,26 @@ function getFileExtension(url, contentType, fallbackType) {
   if (urlExt && urlExt.length > 1) return urlExt;
   
   const typeMap = {
-    'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/gif': '.gif', 'image/webp': '.webp',
+    'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/svg+xml': '.svg', 'image/gif': '.gif', 'image/webp': '.webp',
     'video/mp4': '.mp4', 'video/webm': '.webm', 'video/quicktime': '.mov',
-    'application/pdf': '.pdf', 'text/html': '.html'
+    'audio/mpeg': '.mp3', 'audio/mp3': '.mp3',
+    'application/pdf': '.pdf',
+    'application/vnd.ms-powerpoint': '.ppt', 'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    'application/x-dsapp': '.dsapp', 'application/octet-stream': '.dsapp',
+    'text/html': '.html', 'application/xhtml+xml': '.html',
+    'font/ttf': '.ttf', 'application/x-font-ttf': '.ttf', 'font/opentype': '.otf', 'application/x-font-opentype': '.otf',
+    'application/json': '.json', 'text/json': '.json', 'application/xml': '.xml', 'text/xml': '.xml'
   };
   
   if (contentType && typeMap[contentType.split(';')[0].trim()]) {
     return typeMap[contentType.split(';')[0].trim()];
   }
   
-  return fallbackType === 'Image' ? '.jpg' : '.mp4';
+  if (fallbackType === 'Image') return '.jpg';
+  if (fallbackType === 'Video') return '.mp4';
+  if (fallbackType === 'App') return '.dsapp';
+  
+  return '.mp4';
 }
 
 // Helper: Cleanup old channels and versions
@@ -165,6 +175,11 @@ app.post('/channel/download', express.json(), async (req, res) => {
               console.error(`Error downloading:`, err.message);
             }
           }
+        } else if (content.type === 'App') {
+          const contentBuffer = await contentRes.arrayBuffer();
+          const contentPath = path.join(extractDir, `${content.id}.dsapp`);
+          fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+          console.log(`Saved: ${content.id}.dsapp (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
         } else {
           const contentBuffer = await contentRes.arrayBuffer();
           const ext = getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);

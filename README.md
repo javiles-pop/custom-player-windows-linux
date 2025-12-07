@@ -14,6 +14,7 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 - ✅ **Real-time MQTT Communication** - Cloud connectivity via Harmony
 - ✅ **Channel Download & Storage** - Downloads channel metadata, assets, and playlists locally
 - ✅ **Playlist Support** - Downloads playlist JSON and all referenced videos/images
+- ✅ **Multi-Format Support** - Videos, images, audio, documents, fonts, data files, and .dsapp
 - ✅ **System Information Collection** - Auto-detects hardware (CPU, OS, serial number)
 - ✅ **Automatic Channel Cleanup** - Removes old channels when downloading new ones
 - ✅ **Simplified UI** - Streamlined menu with essential features only (network managed by OS)
@@ -258,9 +259,40 @@ If the device gets stuck after deleting from cloud and re-provisioning, refresh 
 
 Proprietary - Poppulo/Four Winds Interactive
 
+## Supported Content Types
+
+### Super Simple Channels (single item)
+- **Video**: .mp4, .webm, .mov
+- **Image**: .jpg, .png, .svg, .gif, .webp
+- **.dsapp**: Digital signage app packages
+- **Playlist**: JSON playlists with referenced media
+
+### Daily Channels (mixed content)
+- All Super Simple types
+- Multiple items in sequence
+
+### Content Experience Builder (full design tool)
+- **Video**: .mp4, .webm, .mov
+- **Image**: .jpg, .png, .svg, .gif, .webp
+- **Audio**: .mp3
+- **Documents**: .pdf, .ppt, .pptx
+- **Web**: .html
+- **Fonts**: .ttf, .otf
+- **Data**: .json, .xml
+- **.dsapp**: Digital signage app packages
+- **Playlists**: JSON playlists
+
 ## Recent Updates
 
-### Playlist Support (Latest)
+### Multi-Format Content Support (Latest)
+- Added support for audio files (.mp3)
+- Added support for documents (.pdf, .ppt, .pptx)
+- Added support for fonts (.ttf, .otf)
+- Added support for data formats (.json, .xml)
+- Added support for web content (.html)
+- Full support for Content Experience Builder channels
+
+### Playlist Support
 - Added support for downloading playlist JSON files
 - Automatically downloads all videos/images referenced in playlists
 - Extracts unique object IDs from URLs to prevent file overwrites
