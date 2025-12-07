@@ -72,7 +72,8 @@ const handleShadowDelta = async ({ state }: ShadowDelta) => {
       let webUrl = store.getState().appSettings.webPlayerBaseURL;
       if (webUrl) {
         const url = new URL(webUrl);
-        url.searchParams.set('channel', state.channel!.id);
+        const channelUUID = state.channel!.id;
+        url.searchParams.set('channel', channelUUID);
 
         if (state.channel!.channelType === 'cloud') {
           url.searchParams.set('width', document.body.clientWidth.toString());
@@ -87,7 +88,7 @@ const handleShadowDelta = async ({ state }: ShadowDelta) => {
           store.dispatch(setUserCanAccessMenu(false));
         }
         
-        const channelURL = `https://cloudtest1.fwi-dev.com/channels/${state.channel!.id}`;
+        const channelURL = `https://cloudtest1.fwi-dev.com/channels/${channelUUID}`;
         window.postMessage({ type: 'SHADOW_UPDATE', CurrentURL: channelURL }, '*');
         
         const companyId = store.getState().fwiCloud.provisionedDevicePayload?.companyId;
@@ -184,24 +185,33 @@ const handleShadowDelta = async ({ state }: ShadowDelta) => {
 
       if (key === Shadow.CurrentURL) {
         if (value && typeof value === 'string') {
-          // Extract and post channel URL immediately
           let channelURL = value;
+          let channelUUID = null;
           try {
             if (value.includes('cloudtest1.fwi-dev.com/channels/')) {
               channelURL = value;
             } else {
               const urlObj = new URL(value);
-              const channelId = urlObj.searchParams.get('channel');
-              if (channelId) {
-                channelURL = `https://cloudtest1.fwi-dev.com/channels/${channelId}`;
+              channelUUID = urlObj.searchParams.get('channel');
+              if (channelUUID) {
+                channelURL = `https://cloudtest1.fwi-dev.com/channels/${channelUUID}`;
               }
             }
             window.postMessage({ type: 'SHADOW_UPDATE', CurrentURL: channelURL }, '*');
+            
+            if (channelUUID && channelUUID.match(/^[a-f0-9-]{36}$/i)) {
+              Logger.info(`[SHADOW] Triggering download for channel UUID: ${channelUUID}`);
+              const companyId = store.getState().fwiCloud.provisionedDevicePayload?.companyId;
+              window.postMessage({ 
+                type: 'CHANNEL_ASSIGNED', 
+                channel: { id: channelUUID, channelId: channelUUID }, 
+                companyId 
+              }, '*');
+            }
           } catch (e) {
             Logger.error('[SHADOW] Failed to process channel URL:', e);
           }
           
-          // Skip validation for cloudtest1 URLs - they're for display only
           if (value.includes('cloudtest1.fwi-dev.com/channels/')) {
             newValue = value;
           } else {

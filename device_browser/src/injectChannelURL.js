@@ -92,7 +92,10 @@
     if (event.data && event.data.type === 'CHANNEL_ASSIGNED') {
       const { channel, companyId } = event.data;
       console.log('Channel assigned:', channel);
-      downloadChannel(channel.id, channel.versionId, companyId);
+      // For cloud channels (Super Simple/Daily): id is UUID
+      // For standard channels (Content Experience Builder): id is channel name
+      const channelId = channel.id;
+      downloadChannel(channelId, channel.versionId, companyId);
     }
     
     if (event.data && event.data.type === 'CHANNEL_UPDATE') {

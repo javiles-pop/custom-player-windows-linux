@@ -70,10 +70,12 @@ function cleanupOldVersions(channelId, currentVersion) {
       const fullPath = path.join(CONTENT_DIR, file);
       const stats = fs.statSync(fullPath);
       
-      if (stats.isDirectory() && file.match(/^[a-f0-9-]+\.\d+$/)) {
+      // Match both UUID channels (cloud) and name channels (standard)
+      // Pattern: anything.number or anything.number.zip
+      if (stats.isDirectory() && file.match(/^.+\.\d+$/)) {
         fs.rmSync(fullPath, { recursive: true, force: true });
         console.log(`Removed old channel: ${file}`);
-      } else if (file.endsWith('.zip') && file.match(/^[a-f0-9-]+\.\d+\.zip$/)) {
+      } else if (file.endsWith('.zip') && file.match(/^.+\.\d+\.zip$/)) {
         fs.unlinkSync(fullPath);
         console.log(`Deleted old channel ZIP: ${file}`);
       }
@@ -100,6 +102,7 @@ app.post('/channel/download', express.json(), async (req, res) => {
     
     const downloadInfo = await response.json();
     console.log(`Downloading channel v${downloadInfo.version}`);
+    console.log(`Channel URL: ${downloadInfo.channelUrl}`);
     
     const contentResponse = await fetch(downloadInfo.channelUrl);
     if (!contentResponse.ok) {
@@ -118,10 +121,51 @@ app.post('/channel/download', express.json(), async (req, res) => {
     zip.extractAllTo(extractDir, true);
     console.log(`Extracted to: ${extractDir}`);
     
-    // Read channel.json
+    // Read channel.json (only exists for cloud channels - Simple/Daily)
     const channelJsonPath = path.join(extractDir, 'channel.json');
     if (!fs.existsSync(channelJsonPath)) {
-      throw new Error('channel.json not found in ZIP');
+      console.log('No channel.json found - checking for Deployment.xml (Content Experience Builder)');
+      const deploymentXmlPath = path.join(extractDir, 'Deployment.xml');
+      if (fs.existsSync(deploymentXmlPath)) {
+        const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
+        const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
+        const playlistUrls = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(url => url.includes('/playlist/') && url.includes('/json'));
+        
+        console.log(`Found ${playlistUrls.length} playlist(s) in Deployment.xml`);
+        for (const playlistUrl of playlistUrls) {
+          try {
+            console.log(`Downloading playlist: ${playlistUrl}`);
+            const playlistRes = await fetch(playlistUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!playlistRes.ok) continue;
+            
+            const playlistJson = await playlistRes.json();
+            const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
+            
+            for (let j = 0; j < items.length; j++) {
+              const item = items[j];
+              const itemUrl = item.URL || item.url;
+              if (!itemUrl) continue;
+              
+              const urlPath = new URL(itemUrl).pathname;
+              const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+              console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+              
+              const itemRes = await fetch(itemUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+              if (!itemRes.ok) continue;
+              
+              const itemBuffer = await itemRes.arrayBuffer();
+              const ext = getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+              const itemPath = path.join(extractDir, `${itemId}${ext}`);
+              fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+              console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+            }
+          } catch (err) {
+            console.error(`Error downloading playlist:`, err.message);
+          }
+        }
+      }
+      cleanupOldVersions(channelId, downloadInfo.version);
+      return res.json({ success: true, path: extractDir, version: downloadInfo.version, name: downloadInfo.channelName });
     }
     const channelData = JSON.parse(fs.readFileSync(channelJsonPath, 'utf8'));
     
