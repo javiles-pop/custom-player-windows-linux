@@ -129,38 +129,54 @@ app.post('/channel/download', express.json(), async (req, res) => {
       if (fs.existsSync(deploymentXmlPath)) {
         const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
         const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
-        const playlistUrls = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(url => url.includes('/playlist/') && url.includes('/json'));
+        const contentUrls = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(url => url && url.startsWith('http'));
         
-        console.log(`Found ${playlistUrls.length} playlist(s) in Deployment.xml`);
-        for (const playlistUrl of playlistUrls) {
+        console.log(`Found ${contentUrls.length} content URL(s) in Deployment.xml`);
+        for (const contentUrl of contentUrls) {
           try {
-            console.log(`Downloading playlist: ${playlistUrl}`);
-            const playlistRes = await fetch(playlistUrl, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (!playlistRes.ok) continue;
-            
-            const playlistJson = await playlistRes.json();
-            const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
-            
-            for (let j = 0; j < items.length; j++) {
-              const item = items[j];
-              const itemUrl = item.URL || item.url;
-              if (!itemUrl) continue;
+            if (contentUrl.includes('/playlist/') && contentUrl.includes('/json')) {
+              console.log(`Downloading playlist: ${contentUrl}`);
+              const playlistRes = await fetch(contentUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+              if (!playlistRes.ok) continue;
               
-              const urlPath = new URL(itemUrl).pathname;
-              const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
-              console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+              const playlistJson = await playlistRes.json();
+              const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
               
-              const itemRes = await fetch(itemUrl, { headers: { 'Authorization': `Bearer ${token}` } });
-              if (!itemRes.ok) continue;
+              for (let j = 0; j < items.length; j++) {
+                const item = items[j];
+                const itemUrl = item.URL || item.url;
+                if (!itemUrl) continue;
+                
+                const urlPath = new URL(itemUrl).pathname;
+                const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+                console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+                
+                const itemRes = await fetch(itemUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!itemRes.ok) continue;
+                
+                const itemBuffer = await itemRes.arrayBuffer();
+                const ext = getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+                const itemPath = path.join(extractDir, `${itemId}${ext}`);
+                fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+                console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              }
+            } else {
+              const urlPath = new URL(contentUrl).pathname;
+              const contentId = urlPath.split('/objects/')[1]?.split('/')[0];
+              if (!contentId) continue;
               
-              const itemBuffer = await itemRes.arrayBuffer();
-              const ext = getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
-              const itemPath = path.join(extractDir, `${itemId}${ext}`);
-              fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
-              console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              console.log(`Downloading content: ${contentId}`);
+              const contentRes = await fetch(contentUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+              if (!contentRes.ok) continue;
+              
+              const contentBuffer = await contentRes.arrayBuffer();
+              const ext = getFileExtension(contentUrl, contentRes.headers.get('content-type'), null);
+              const contentPath = path.join(extractDir, `${contentId}${ext}`);
+              fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+              console.log(`Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
             }
           } catch (err) {
-            console.error(`Error downloading playlist:`, err.message);
+            console.error(`Error downloading content:`, err.message);
           }
         }
       }
