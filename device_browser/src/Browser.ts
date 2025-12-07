@@ -21,7 +21,7 @@ class BrowserAPI extends DeviceAPI {
   supportsLocalCache = true;
   supportsMonitoring = true;
   supportsProxy = true;
-  supportsTCPConfig = true;
+  supportsTCPConfig = false;
   supportsVirtualKeyboard = false;
   supportsWifiConfig = true;
   supportsVideoWall = true;

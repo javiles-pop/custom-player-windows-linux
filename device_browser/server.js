@@ -125,11 +125,47 @@ app.post('/channel/download', express.json(), async (req, res) => {
           continue;
         }
         
-        const contentBuffer = await contentRes.arrayBuffer();
-        const ext = getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
-        const contentPath = path.join(extractDir, `${content.id}${ext}`);
-        fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
-        console.log(`Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+        if (content.type === 'Playlist') {
+          const playlistJson = await contentRes.json();
+          const playlistPath = path.join(extractDir, `${content.id}.json`);
+          fs.writeFileSync(playlistPath, JSON.stringify(playlistJson, null, 2));
+          console.log(`Saved playlist: ${content.id}.json`);
+          
+          // Download playlist items
+          const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
+          for (let j = 0; j < items.length; j++) {
+            const item = items[j];
+            const itemUrl = item.URL || item.url;
+            const urlPath = new URL(itemUrl).pathname;
+            const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+            console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+            
+            try {
+              const itemRes = await fetch(itemUrl, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              
+              if (!itemRes.ok) {
+                console.error(`Failed: HTTP ${itemRes.status}`);
+                continue;
+              }
+              
+              const itemBuffer = await itemRes.arrayBuffer();
+              const ext = getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+              const itemPath = path.join(extractDir, `${itemId}${ext}`);
+              fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+              console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+            } catch (err) {
+              console.error(`Error downloading:`, err.message);
+            }
+          }
+        } else {
+          const contentBuffer = await contentRes.arrayBuffer();
+          const ext = getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
+          const contentPath = path.join(extractDir, `${content.id}${ext}`);
+          fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+          console.log(`Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+        }
       } catch (err) {
         console.error(`Error downloading ${content.id}:`, err.message);
       }
