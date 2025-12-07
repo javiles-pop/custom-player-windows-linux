@@ -196,6 +196,7 @@ yarn test:cypress      # UI tests
 
 - [GETTING-STARTED.md](docs/GETTING-STARTED.md) - Quick start guide
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - How the system works
+- [MIGRATION-GUIDE.md](docs/MIGRATION-GUIDE.md) - For developers familiar with BrightSign/Samsung/LG shim
 - [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## Architecture
