@@ -320,6 +320,10 @@ class BrowserAPI extends DeviceAPI {
     }
   };
 
+  restartApp = () => {
+    window.location.reload();
+  };
+
   getTimeZoneMap = () => {
     return {
       MST: 'Mountain Standard Time',
