@@ -194,12 +194,9 @@ yarn test:cypress      # UI tests
 
 ## Documentation
 
-- [SIMPLIFIED-README.md](docs/SIMPLIFIED-README.md) - Detailed usage guide
-- [IMPLEMENTATION-STATUS.md](docs/IMPLEMENTATION-STATUS.md) - Feature implementation status
-- [SYSTEM-INFO.md](docs/SYSTEM-INFO.md) - System information collection details
-- [VERSION-INFO.md](docs/VERSION-INFO.md) - Version and cloudFeatures.json documentation
-- [CHANNEL-DOWNLOAD-CHANGES.md](docs/CHANNEL-DOWNLOAD-CHANGES.md) - Channel download implementation
-- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Troubleshooting guide
+- [GETTING-STARTED.md](docs/GETTING-STARTED.md) - Quick start guide
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - How the system works
+- [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## Architecture
 
