@@ -105,8 +105,10 @@ shim-master/
 │   │   ├── simplified.css   # UI customization
 │   │   └── SimplifiedShimMenuPageDeployment.tsx
 │   ├── server.js            # Node server (system info, channel downloads)
-│   ├── package.json
-│   └── webpack.config.simplified.js
+│   ├── webpack.config.simplified.js  # Webpack config for renderer
+│   ├── webpack.server.js    # Webpack config for server bundling
+│   ├── electron-main.js     # Electron main process
+│   └── package.json
 ├── webpack.config.base.js   # Base webpack config
 ├── package.json             # Root dependencies
 └── README.md
@@ -289,7 +291,14 @@ Proprietary - Poppulo/Four Winds Interactive
 
 ## Recent Updates
 
-### Network Share Support (Latest)
+### Electron Server Bundling (Latest)
+- Server.js is now bundled with webpack for production Electron builds
+- Uses babel-loader to transpile modern JavaScript syntax (optional chaining)
+- All server dependencies bundled into single server.bundle.js file
+- Server runs using Electron's embedded Node runtime (ELECTRON_RUN_AS_NODE)
+- Fixes HTTP 500 errors in packaged apps caused by missing dependencies
+
+### Network Share Support
 - Added support for UNC network share paths in CXB channels
 - Copies files from network shares (e.g., `\\192.168.0.82\Share\file.mp4`) to local storage
 - Works alongside HTTP/HTTPS content downloads

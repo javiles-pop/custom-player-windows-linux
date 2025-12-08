@@ -5,6 +5,7 @@ const path = require('path');
 const AdmZip = require('adm-zip');
 const os = require('os');
 const { execSync } = require('child_process');
+const fetch = require('node-fetch').default || require('node-fetch');
 
 const app = express();
 const upload = multer();

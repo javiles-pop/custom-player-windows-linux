@@ -5,9 +5,12 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
     "@types/jest": "^25.2.2",
     "@types/node": "^22.10.1",
     "@types/react-dom": "^16.9.8",
+    "babel-loader": "^8.4.1",
     "copy-webpack-plugin": "^6.4.1",
     "css-loader": "^3.5.3",
     "dotenv": "^8.2.0",
@@ -32,10 +35,11 @@
     "adm-zip": "^0.5.16",
     "classnames": "^2.3.1",
     "date-fns": "^2.27.0",
-    "express": "^4.18.2",
+    "express": "^4.22.1",
     "html2canvas": "^1.0.0-rc.7",
     "js-logger": "^1.6.1",
     "multer": "^1.4.5-lts.1",
+    "node-fetch": "^2.7.0",
     "prettier": "^2.0.5",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
@@ -50,7 +54,7 @@
     "build": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production",
     "start:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --watch -d --config webpack.config.simplified.js",
     "dev:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack-dev-server -d --config webpack.config.simplified.js",
-    "build:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production --config webpack.config.simplified.js",
+    "build:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production --config webpack.config.simplified.js && webpack --config webpack.server.js",
     "server": "node server.js",
     "electron": "electron .",
     "electron:build": "yarn build:simplified && electron-builder",
@@ -61,13 +65,17 @@
     "last 2 chrome versions"
   ],
   "build": {
-    "appId": "com.fwi.shim-browser",
-    "productName": "FWI Player",
+    "appId": "com.poppulo.partner-player",
+    "productName": "Poppulo Partner Player Demo",
     "files": [
       "dist/**/*",
-      "server.js",
-      "electron-main.js",
-      "node_modules/**/*"
+      "electron-main.js"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/server.bundle.js",
+        "to": "server.bundle.js"
+      }
     ],
     "directories": {
       "output": "release"

@@ -96,7 +96,9 @@ Press `F5` to start debugging with breakpoints.
 $env:ENVIRONMENT="prod"; $env:VERSION="2.0.0"; $env:BUILD_NUMBER="1"; npm run electron:build:win
 ```
 
-Output: `device_browser/release/FWI Player Setup.exe`
+Output: `device_browser/release/Poppulo Partner Player Demo Setup 2.0.0.exe`
+
+**Note:** The build process automatically bundles server.js with all dependencies using webpack.
 
 ### Linux Packages
 
@@ -121,12 +123,54 @@ If you change environment variables, you must rebuild.
 
 The Node.js server (server.js) starts automatically when Electron launches. You don't need to run it separately.
 
+**Production Builds:** The server is bundled with webpack into `server.bundle.js` with all dependencies included. This ensures the server works correctly in packaged apps without requiring external node_modules.
+
+**Development Mode:** The server runs directly from `server.js` without bundling.
+
 ### DevTools in Production
 
 To disable DevTools in production builds, remove this line from `electron-main.js`:
 
 ```javascript
 mainWindow.webContents.openDevTools();
+```
+
+## Architecture
+
+### Server Bundling
+
+For production Electron builds, the Node.js server is bundled using webpack:
+
+1. **webpack.server.js** - Bundles server.js with all dependencies
+2. **babel-loader** - Transpiles modern JavaScript (optional chaining, etc.)
+3. **Output** - Single `dist/server.bundle.js` file
+4. **Electron** - Runs bundled server using `ELECTRON_RUN_AS_NODE` environment variable
+
+This approach:
+- ✅ Eliminates missing dependency errors in packaged apps
+- ✅ Reduces package size (no need to copy entire node_modules)
+- ✅ Ensures compatibility with Electron's embedded Node runtime
+- ✅ Transpiles modern syntax for older Node versions
+
+### Running the Server
+
+**Development:**
+```javascript
+// electron-main.js uses server.js directly
+const serverPath = path.join(__dirname, 'server.js');
+```
+
+**Production:**
+```javascript
+// electron-main.js uses bundled server
+const serverPath = path.join(process.resourcesPath, 'server.bundle.js');
+```
+
+The server is spawned using:
+```javascript
+spawn(process.execPath, [serverPath], {
+  env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
+});
 ```
 
 ## Troubleshooting
@@ -136,6 +180,17 @@ mainWindow.webContents.openDevTools();
 ```bash
 npm install --save-dev copy-webpack-plugin@6
 ```
+
+### HTTP 500 Errors in Packaged App
+
+If the server returns HTTP 500 errors in the packaged app:
+1. Run the app from PowerShell to see server logs:
+   ```powershell
+   & "C:\Users\<username>\AppData\Local\Programs\@fwishim-browser\Poppulo Partner Player Demo.exe"
+   ```
+2. Check for "TypeError" or "is not a function" errors
+3. Ensure server.js is properly bundled with webpack (should happen automatically during build)
+4. Verify babel-loader is transpiling modern syntax
 
 ### Environment variables not working
 
@@ -165,3 +220,11 @@ echo $env:CLOUD_ENV
 # Set and rebuild
 $env:ENVIRONMENT="dev"; $env:CLOUD_ENV="cloudtest1"; npm run build:simplified
 ```
+
+### WMIC Command Not Found
+
+If you see "'wmic' is not recognized" errors:
+- This is expected on some Windows systems
+- The app still works fine - it just can't auto-detect serial number via BIOS
+- Users can activate using invite codes instead
+- Non-critical warning that can be ignored
