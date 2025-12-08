@@ -129,14 +129,30 @@ app.post('/channel/download', express.json(), async (req, res) => {
       if (fs.existsSync(deploymentXmlPath)) {
         const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
         const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
-        const contentUrls = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(url => url && url.startsWith('http'));
+        const contentPaths = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(p => p && (p.startsWith('http') || p.startsWith('\\\\')));
         
-        console.log(`Found ${contentUrls.length} content URL(s) in Deployment.xml`);
-        for (const contentUrl of contentUrls) {
+        console.log(`Found ${contentPaths.length} content path(s) in Deployment.xml`);
+        for (const contentPath of contentPaths) {
           try {
-            if (contentUrl.includes('/playlist/') && contentUrl.includes('/json')) {
-              console.log(`Downloading playlist: ${contentUrl}`);
-              const playlistRes = await fetch(contentUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+            // Handle UNC network share paths
+            if (contentPath.startsWith('\\\\')) {
+              const fileName = path.basename(contentPath);
+              const destPath = path.join(extractDir, fileName);
+              console.log(`Copying from network share: ${fileName}`);
+              try {
+                fs.copyFileSync(contentPath, destPath);
+                const stats = fs.statSync(destPath);
+                console.log(`Saved: ${fileName} (${(stats.size / 1024).toFixed(2)} KB)`);
+              } catch (err) {
+                console.error(`Failed to copy ${fileName}:`, err.message);
+              }
+              continue;
+            }
+            
+            // Handle HTTP/HTTPS URLs
+            if (contentPath.includes('/playlist/') && contentPath.includes('/json')) {
+              console.log(`Downloading playlist: ${contentPath}`);
+              const playlistRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
               if (!playlistRes.ok) continue;
               
               const playlistJson = await playlistRes.json();
@@ -161,18 +177,18 @@ app.post('/channel/download', express.json(), async (req, res) => {
                 console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
               }
             } else {
-              const urlPath = new URL(contentUrl).pathname;
+              const urlPath = new URL(contentPath).pathname;
               const contentId = urlPath.split('/objects/')[1]?.split('/')[0];
               if (!contentId) continue;
               
               console.log(`Downloading content: ${contentId}`);
-              const contentRes = await fetch(contentUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+              const contentRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
               if (!contentRes.ok) continue;
               
               const contentBuffer = await contentRes.arrayBuffer();
-              const ext = getFileExtension(contentUrl, contentRes.headers.get('content-type'), null);
-              const contentPath = path.join(extractDir, `${contentId}${ext}`);
-              fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+              const ext = getFileExtension(contentPath, contentRes.headers.get('content-type'), null);
+              const filePath = path.join(extractDir, `${contentId}${ext}`);
+              fs.writeFileSync(filePath, Buffer.from(contentBuffer));
               console.log(`Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
             }
           } catch (err) {

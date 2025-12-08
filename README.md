@@ -288,7 +288,12 @@ Proprietary - Poppulo/Four Winds Interactive
 
 ## Recent Updates
 
-### Content Experience Builder Direct Content Support (Latest)
+### Network Share Support (Latest)
+- Added support for UNC network share paths in CXB channels
+- Copies files from network shares (e.g., `\\192.168.0.82\Share\file.mp4`) to local storage
+- Works alongside HTTP/HTTPS content downloads
+
+### Content Experience Builder Direct Content Support
 - Added support for direct content URLs in CXB channels
 - Downloads ImageContent, HtmlContent, and other content types from Deployment.xml
 - Handles both playlist URLs and direct download URLs

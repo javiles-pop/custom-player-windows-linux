@@ -29,6 +29,7 @@ This is a browser-based player that downloads channel content to disk but does N
 3. Extracts to disk
 4. **For Simple/Daily channels (cloud):** Reads `channel.json` and downloads all content assets
 5. **For Content Experience Builder channels (standard):** Parses `Deployment.xml` and downloads all content from `<Path>` tags
+   - Network share paths: Copies files from UNC paths (e.g., `\\server\share\file.mp4`)
    - Playlist URLs: Downloads playlist JSON and all referenced media
    - Direct content URLs: Downloads content directly (images, HTML, etc.)
 6. **Cleanup:** Removes old channels (different IDs)
@@ -93,8 +94,9 @@ After:  CHROMA.45/  (only current channel kept)
 **How it works:**
 - CXB channels use channel names (e.g., "AMAZON") instead of UUIDs
 - Contains `Deployment.xml` instead of `channel.json`
-- Parses XML to extract content URLs from `<Path>` tags in `<DynamicUrl>` sections
-- Supports two types of content URLs:
+- Parses XML to extract content paths from `<Path>` tags in `<DynamicUrl>` sections
+- Supports three types of content paths:
+  - **Network share paths**: UNC paths (e.g., `\\192.168.0.82\Share\file.mp4`) - copies files from network shares
   - **Playlist URLs**: Contains `/playlist/` and `/json` - downloads playlist and all referenced media
   - **Direct content URLs**: Contains `/objects/{id}/download` - downloads content directly (images, HTML, etc.)
 - Extracts object IDs from URLs for proper file naming
