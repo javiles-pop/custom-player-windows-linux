@@ -1,15 +1,18 @@
 {
   "name": "@fwi/shim-browser",
   "version": "2.0.0",
-  "main": "src/index.tsx",
+  "main": "electron-main.js",
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
     "@types/jest": "^25.2.2",
     "@types/node": "^22.10.1",
     "@types/react-dom": "^16.9.8",
+    "copy-webpack-plugin": "^6.4.1",
     "css-loader": "^3.5.3",
     "dotenv": "^8.2.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
     "file-loader": "^6.0.0",
     "html-webpack-plugin": "^4.3.0",
     "react-hot-loader": "^4.12.21",
@@ -44,13 +47,42 @@
   "scripts": {
     "start": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --watch -d",
     "dev": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack-dev-server -d",
-    "build": "rm -rf ./dist && cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production",
+    "build": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production",
     "start:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --watch -d --config webpack.config.simplified.js",
     "dev:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack-dev-server -d --config webpack.config.simplified.js",
-    "build:simplified": "rm -rf ./dist && cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production --config webpack.config.simplified.js",
-    "server": "node server.js"
+    "build:simplified": "cross-env NODE_OPTIONS='--openssl-legacy-provider' webpack --progress --mode production --config webpack.config.simplified.js",
+    "server": "node server.js",
+    "electron": "electron .",
+    "electron:build": "yarn build:simplified && electron-builder",
+    "electron:build:win": "yarn build:simplified && electron-builder --win",
+    "electron:build:linux": "yarn build:simplified && electron-builder --linux"
   },
   "browserslist": [
     "last 2 chrome versions"
-  ]
+  ],
+  "build": {
+    "appId": "com.fwi.shim-browser",
+    "productName": "FWI Player",
+    "files": [
+      "dist/**/*",
+      "server.js",
+      "electron-main.js",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    }
+  }
 }

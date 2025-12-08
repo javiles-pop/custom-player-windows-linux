@@ -33,9 +33,10 @@
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
+    "electron": "^39.2.6",
+    "electron-builder": "^26.0.12",
     "prettier": "^2.0.5"
   },
-  "dependencies": {},
   "browserslist": [
     "chrome >= 47"
   ],
