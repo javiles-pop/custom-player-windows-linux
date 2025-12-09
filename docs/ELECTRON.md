@@ -100,13 +100,41 @@ Output: `device_browser/release/Poppulo Partner Player Demo Setup 2.0.0.exe`
 
 **Note:** The build process automatically bundles server.js with all dependencies using webpack.
 
-### Linux Packages
+### Linux Installer
 
-```bash
-export ENVIRONMENT=prod VERSION=2.0.0 BUILD_NUMBER=1 && npm run electron:build:linux
-```
+**Requirements:**
+- WSL (Windows Subsystem for Linux) with Ubuntu
+- Build must be done from WSL, not Windows PowerShell
 
-Output: `device_browser/release/` (AppImage and .deb)
+**Steps:**
+
+1. Install WSL (if not already installed):
+   ```powershell
+   wsl --install
+   ```
+
+2. Launch Ubuntu and navigate to project:
+   ```bash
+   wsl -d Ubuntu
+   cd "/mnt/c/Users/[username]/OneDrive - Poppulo/Applications/FWI/Players/shim-master/device_browser"
+   ```
+
+3. Build the installer:
+   ```bash
+   npm run electron:build:linux
+   ```
+
+**Output:** `device_browser/release/@fwi/shim-browser-2.0.0.tar.gz`
+
+**Format:** tar.gz archive (works on all Linux distributions)
+
+**Why WSL?**
+- Building from Windows works for tar.gz format
+- Avoids SSL certificate issues with corporate proxies
+- Better compatibility than building from Windows directly
+- Required for .deb or AppImage formats (needs additional tools)
+
+See [LINUX-INSTALLER.md](../docs/LINUX-INSTALLER.md) for complete Linux build and installation guide.
 
 ## Important Notes
 
@@ -206,6 +234,31 @@ Check that `dist/index.html` exists. If not, run:
 
 ```powershell
 npm run build:simplified
+```
+
+### Linux: Permission denied on /var/lib/fwi/content
+
+On Linux, the app needs write access to `/var/lib/fwi/content`:
+
+```bash
+sudo mkdir -p /var/lib/fwi/content
+sudo chown -R $USER:$USER /var/lib/fwi
+```
+
+### Linux: SUID sandbox error
+
+Run with `--no-sandbox` flag:
+
+```bash
+./@fwishim-browser --no-sandbox
+```
+
+### Linux: Missing X server or $DISPLAY
+
+Run the app directly on the Ubuntu desktop, not via SSH. Or use SSH with X11 forwarding:
+
+```bash
+ssh -X user@ubuntu-ip
 ```
 
 ### Wrong cloud environment

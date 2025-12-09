@@ -22,11 +22,39 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 
 ## Requirements
 
+### Development
 - Node.js v16+
 - Yarn v1.19.0+
-- Windows 10/11 or Linux
+- Windows 10/11 or Linux (Ubuntu 20.04+)
 
-## Quick Start
+### Production (End Users)
+- Windows 10/11 or Ubuntu 20.04+ (x86_64)
+- No Node.js or development tools required
+- Installers available for both platforms
+
+## Installation
+
+### For End Users (Production)
+
+**Windows:**
+1. Download `Poppulo Partner Player Demo Setup 2.0.0.exe`
+2. Run the installer
+3. Follow the installation wizard
+4. Launch from Start Menu or Desktop shortcut
+
+**Linux (Ubuntu):**
+1. Download `shim-browser-2.0.0.tar.gz`
+2. Extract: `tar -xzf shim-browser-2.0.0.tar.gz`
+3. Create content directory:
+   ```bash
+   sudo mkdir -p /var/lib/fwi/content
+   sudo chown -R $USER:$USER /var/lib/fwi
+   ```
+4. Run: `cd shim-browser-2.0.0 && ./@fwishim-browser --no-sandbox`
+
+See [LINUX-INSTALLER.md](docs/LINUX-INSTALLER.md) for detailed Linux installation instructions.
+
+## Quick Start (Development)
 
 ### 1. Install Dependencies
 
@@ -182,7 +210,7 @@ The player reports as `playerType: "BrightSign"` with `version: "2.0.0"` to leve
 
 ## Development
 
-### Build for Production
+### Build for Production (Web)
 
 ```bash
 cd device_browser
@@ -190,6 +218,27 @@ yarn build:simplified
 ```
 
 Output will be in `device_browser/dist/`
+
+### Build Electron Installers
+
+**Windows Installer (.exe):**
+```bash
+cd device_browser
+npm run electron:build:win
+```
+
+**Linux Installer (.tar.gz):**
+
+Requires WSL (Windows Subsystem for Linux):
+```bash
+wsl -d Ubuntu
+cd "/mnt/c/Users/[username]/path/to/shim-master/device_browser"
+npm run electron:build:linux
+```
+
+**Output Location:** `device_browser/release/`
+- Windows: `Poppulo Partner Player Demo Setup 2.0.0.exe`
+- Linux: `@fwi/shim-browser-2.0.0.tar.gz`
 
 ### Running Tests
 
@@ -201,9 +250,10 @@ yarn test:cypress      # UI tests
 
 ## Documentation
 
-- [GETTING-STARTED.md](docs/GETTING-STARTED.md) - Quick start guide
+- [GETTING-STARTED.md](docs/GETTING-STARTED.md) - Quick start guide for development
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - How the system works
 - [ELECTRON.md](docs/ELECTRON.md) - Electron app setup and debugging
+- [LINUX-INSTALLER.md](docs/LINUX-INSTALLER.md) - Building and installing on Ubuntu Linux
 - [MIGRATION-GUIDE.md](docs/MIGRATION-GUIDE.md) - For developers familiar with BrightSign/Samsung/LG shim
 - [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
@@ -291,7 +341,15 @@ Proprietary - Poppulo/Four Winds Interactive
 
 ## Recent Updates
 
-### Electron Server Bundling (Latest)
+### Windows and Linux Installers (Latest)
+- Windows NSIS installer (.exe) with GUI wizard
+- Linux tar.gz archive for Ubuntu 20.04+
+- Both installers include bundled Electron runtime (no Node.js required)
+- Automatic content directory setup
+- Desktop shortcuts and Start Menu entries (Windows)
+- See [LINUX-INSTALLER.md](docs/LINUX-INSTALLER.md) for Linux details
+
+### Electron Server Bundling
 - Server.js is now bundled with webpack for production Electron builds
 - Uses babel-loader to transpile modern JavaScript syntax (optional chaining)
 - All server dependencies bundled into single server.bundle.js file

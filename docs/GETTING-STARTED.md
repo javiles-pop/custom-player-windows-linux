@@ -1,6 +1,10 @@
-# Getting Started
+# Getting Started (Development)
 
-Quick start guide for running the Custom Player for Windows/Linux.
+Quick start guide for developers working on the Custom Player for Windows/Linux.
+
+**Note:** For end-user installation instructions, see:
+- Windows: Use the `.exe` installer
+- Linux: See [LINUX-INSTALLER.md](LINUX-INSTALLER.md)
 
 ## Prerequisites
 
@@ -111,12 +115,34 @@ C:\Users\Public\Documents\Four Winds Interactive\Content\{channelId}.{version}\
 
 ## Building for Production
 
+### Web Build (Development/Testing)
+
 ```bash
 cd device_browser
 yarn build:simplified
 ```
 
 Output: `device_browser/dist/`
+
+### Electron Installers (End Users)
+
+**Windows Installer:**
+```bash
+cd device_browser
+npm run electron:build:win
+```
+Output: `device_browser/release/Poppulo Partner Player Demo Setup 2.0.0.exe`
+
+**Linux Installer (requires WSL):**
+```bash
+wsl -d Ubuntu
+cd "/mnt/c/Users/[username]/path/to/shim-master/device_browser"
+npm run electron:build:linux
+```
+Output: `device_browser/release/@fwi/shim-browser-2.0.0.tar.gz`
+
+See [ELECTRON.md](ELECTRON.md) for detailed Electron build instructions.
+See [LINUX-INSTALLER.md](LINUX-INSTALLER.md) for Linux-specific details.
 
 ## Environment Options
 
@@ -136,5 +162,7 @@ Output: `device_browser/dist/`
 
 ## Next Steps
 
-- See [ARCHITECTURE.md](ARCHITECTURE.md) for how the system works
-- See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues
+- [ARCHITECTURE.md](ARCHITECTURE.md) - How the system works
+- [ELECTRON.md](ELECTRON.md) - Building Electron installers
+- [LINUX-INSTALLER.md](LINUX-INSTALLER.md) - Linux build and installation
+- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues

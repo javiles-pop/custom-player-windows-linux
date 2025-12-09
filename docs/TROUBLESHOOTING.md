@@ -138,6 +138,84 @@ GET https://cdn.segment.com/analytics.js/... net::ERR_BLOCKED_BY_CLIENT
 
 ---
 
+### 6. Linux: Permission Denied on /var/lib/fwi/content
+
+**Error:**
+```
+Error: EACCES: permission denied, mkdir '/var/lib/fwi/content'
+```
+
+**Cause:** Node server cannot create content directory.
+
+**Fix:**
+```bash
+sudo mkdir -p /var/lib/fwi/content
+sudo chown -R $USER:$USER /var/lib/fwi
+```
+
+---
+
+### 7. Linux: SUID Sandbox Helper Binary Error
+
+**Error:**
+```
+FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper binary was found, but is not configured correctly.
+```
+
+**Cause:** Chromium sandbox requires root permissions or special configuration.
+
+**Fix:** Run with `--no-sandbox` flag:
+```bash
+./@fwishim-browser --no-sandbox
+```
+
+---
+
+### 8. Linux: Missing X Server or $DISPLAY
+
+**Error:**
+```
+ERROR:ozone_platform_x11.cc(240)] Missing X server or $DISPLAY
+ERROR:env.cc(257)] The platform failed to initialize. Exiting.
+```
+
+**Cause:** Running via SSH without display server.
+
+**Fix:**
+- Run directly on Ubuntu desktop (not via SSH)
+- Or use SSH with X11 forwarding: `ssh -X user@ubuntu-ip`
+
+---
+
+### 9. Electron: HTTP 500 Errors in Packaged App
+
+**Error:**
+Node server returns HTTP 500 errors in packaged Electron app.
+
+**Cause:** Server dependencies not bundled or modern JavaScript syntax not transpiled.
+
+**Fix:**
+The build process should automatically bundle the server. If issues persist:
+
+1. Verify webpack bundling:
+   ```bash
+   cd device_browser
+   npm run build:simplified
+   ```
+   Check that `dist/server.bundle.js` exists.
+
+2. Check server logs by running packaged app from terminal:
+   ```powershell
+   # Windows
+   & "C:\Users\<username>\AppData\Local\Programs\@fwishim-browser\Poppulo Partner Player Demo.exe"
+   ```
+   ```bash
+   # Linux
+   ./@fwishim-browser --no-sandbox 2>&1 | tee app.log
+   ```
+
+---
+
 ## Startup Checklist
 
 Before running the player, ensure:
@@ -165,6 +243,22 @@ Before running the player, ensure:
 4. ✅ Device is activated in CloudTest1 company
 
 5. ✅ Channel is assigned to device
+
+---
+
+## Platform-Specific Notes
+
+### Windows
+- Content stored in: `C:\Users\Public\Documents\Four Winds Interactive\Content`
+- WMIC commands may fail on some systems (non-critical)
+- Run installer as Administrator for best results
+
+### Linux (Ubuntu)
+- Content stored in: `/var/lib/fwi/content`
+- Requires `/var/lib/fwi/content` directory with write permissions
+- Must run with `--no-sandbox` flag
+- Cannot run via SSH without X11 forwarding
+- See [LINUX-INSTALLER.md](LINUX-INSTALLER.md) for complete setup
 
 ---
 
