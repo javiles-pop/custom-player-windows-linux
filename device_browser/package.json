@@ -4,6 +4,12 @@
   "main": "electron-main.js",
   "license": "UNLICENSED",
   "private": true,
+  "author": {
+    "name": "Poppulo",
+    "email": "support@poppulo.com"
+  },
+  "homepage": "https://www.poppulo.com",
+  "description": "Poppulo Partner Player for Windows and Linux",
   "devDependencies": {
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
@@ -85,11 +91,7 @@
       "icon": "build/icon.ico"
     },
     "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "icon": "build/icon.png",
+      "target": "tar.gz",
       "category": "Utility"
     }
   }
