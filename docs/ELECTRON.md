@@ -236,14 +236,9 @@ Check that `dist/index.html` exists. If not, run:
 npm run build:simplified
 ```
 
-### Linux: Permission denied on /var/lib/fwi/content
+### Linux: Permission denied on ~/Poppulo/Content
 
-On Linux, the app needs write access to `/var/lib/fwi/content`:
-
-```bash
-sudo mkdir -p /var/lib/fwi/content
-sudo chown -R $USER:$USER /var/lib/fwi
-```
+This should not occur as content is stored in the user's home directory. If it does occur, check user home directory permissions.
 
 ### Linux: SUID sandbox error
 

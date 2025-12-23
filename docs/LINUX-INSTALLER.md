@@ -127,31 +127,15 @@ shim-browser-2.0.0/
     └── server.bundle.js       # Node server
 ```
 
-### Step 3: Create Required Directories
-
-The app needs `/var/lib/fwi/content` for storing downloaded channels:
+### Step 3: Run the Application
 
 ```bash
-sudo mkdir -p /var/lib/fwi/content
-sudo chown -R $USER:$USER /var/lib/fwi
-```
-
-**Why This is Required:**
-- Linux uses `/var/lib/fwi/content` for channel storage (Windows uses `C:\Users\Public\Documents\Four Winds Interactive\Content`)
-- App must have write permissions to download and extract channels
-- Without this, Node server fails to start with `EACCES: permission denied`
-
-### Step 4: Make Executable
-
-```bash
+cd shim-browser-2.0.0
 chmod +x @fwishim-browser
-```
-
-### Step 5: Run the Application
-
-```bash
 ./@fwishim-browser --no-sandbox
 ```
+
+**Note:** Content directory `~/Poppulo/Content` is created automatically when the app starts.
 
 **Command Line Flags:**
 - `--no-sandbox` - Required when running as non-root user (Chromium security requirement)
@@ -173,18 +157,15 @@ ERROR:env.cc(257)] The platform failed to initialize. Exiting.
 - Run the app directly on the Ubuntu desktop (not via SSH)
 - Or use SSH with X11 forwarding: `ssh -X user@ubuntu-ip`
 
-### Error: Permission denied on /var/lib/fwi/content
+### Error: Permission denied on ~/Poppulo/Content
 
 **Problem:**
 ```
-Error: EACCES: permission denied, mkdir '/var/lib/fwi/content'
+Error: EACCES: permission denied, mkdir '~/Poppulo/Content'
 ```
 
 **Solution:**
-```bash
-sudo mkdir -p /var/lib/fwi/content
-sudo chown -R $USER:$USER /var/lib/fwi
-```
+This should not occur as the directory is created in the user's home directory. If it does occur, ensure the user has write permissions to their home directory.
 
 ### Error: SUID sandbox helper binary not configured
 
@@ -205,7 +186,7 @@ Run with `--no-sandbox` flag:
 App loads but shows connection errors to `localhost:3001`
 
 **Solution:**
-Check that `/var/lib/fwi/content` exists and has proper permissions (see above)
+Check that `~/Poppulo/Content` exists and has proper permissions (should be created automatically)
 
 ---
 
@@ -254,7 +235,7 @@ chmod +x ~/.local/share/applications/poppulo-player.desktop
 rm -rf ~/Desktop/shim-browser-2.0.0
 
 # Remove channel content (optional)
-sudo rm -rf /var/lib/fwi
+rm -rf ~/Poppulo
 
 # Remove desktop shortcut (if created)
 rm ~/.local/share/applications/poppulo-player.desktop
@@ -268,7 +249,7 @@ rm ~/.local/share/applications/poppulo-player.desktop
 |---------|---------|-------|
 | **Installer Type** | NSIS (.exe) | tar.gz archive |
 | **Installation** | GUI wizard | Manual extraction |
-| **Content Path** | `C:\Users\Public\Documents\Four Winds Interactive\Content` | `/var/lib/fwi/content` |
+| **Content Path** | `C:\Users\Public\Documents\Four Winds Interactive\Content` | `~/Poppulo/Content` |
 | **Auto-start** | Optional (installer checkbox) | Manual setup required |
 | **Uninstaller** | Included | Manual deletion |
 | **Desktop Shortcut** | Created automatically | Manual creation |

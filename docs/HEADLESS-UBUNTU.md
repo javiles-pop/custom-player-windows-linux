@@ -121,8 +121,7 @@ WantedBy=multi-user.target
 # Create user and directories
 sudo useradd -r -s /bin/false fwiplayer
 sudo mkdir -p /opt/poppulo-player
-sudo mkdir -p /var/lib/fwi/content
-sudo chown -R fwiplayer:fwiplayer /var/lib/fwi
+# Content directory will be created automatically in user home
 
 # Install service
 sudo cp systemd/poppulo-player.service /etc/systemd/system/
@@ -136,7 +135,7 @@ sudo systemctl enable poppulo-player
 - Device activation via serial number or invite code
 - MQTT communication with Harmony
 - Channel download and extraction
-- Content storage to `/var/lib/fwi/content`
+- Content storage at `~/Poppulo/Content`
 - System info reporting
 - BrightSign spoofing
 
@@ -246,7 +245,7 @@ sudo journalctl -u poppulo-player -f
 - [ ] Device activation works (serial number + invite code)
 - [ ] MQTT communication functional
 - [ ] Channel download and extraction working
-- [ ] Content stored correctly in `/var/lib/fwi/content`
+- [ ] Content stored correctly in `~/Poppulo/Content`
 - [ ] Service auto-starts on boot
 - [ ] Proper logging and monitoring
 - [ ] BrightSign spoofing maintained for cloud compatibility

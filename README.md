@@ -45,12 +45,9 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 **Linux (Ubuntu):**
 1. Download `shim-browser-2.0.0.tar.gz`
 2. Extract: `tar -xzf shim-browser-2.0.0.tar.gz`
-3. Create content directory:
-   ```bash
-   sudo mkdir -p /var/lib/fwi/content
-   sudo chown -R $USER:$USER /var/lib/fwi
-   ```
-4. Run: `cd shim-browser-2.0.0 && ./@fwishim-browser --no-sandbox`
+3. Run: `cd shim-browser-2.0.0 && chmod +x @fwishim-browser && ./@fwishim-browser --no-sandbox`
+
+**Note:** Content directory `~/Poppulo/Content` is created automatically - no manual setup required.
 
 See [LINUX-INSTALLER.md](docs/LINUX-INSTALLER.md) for detailed Linux installation instructions.
 
@@ -162,7 +159,7 @@ shim-master/
      - Playlist URLs: Downloads playlist JSON and all referenced media
      - Direct content URLs: Downloads images, HTML, and other content directly
 5. **Automatic Cleanup**: Removes all old channels (different channel IDs) to save disk space
-6. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `/var/lib/fwi/content` (Linux)
+6. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `~/Poppulo/Content` (Linux)
 7. Separate rendering service reads files from disk
 
 ### BrightSign Spoofing
