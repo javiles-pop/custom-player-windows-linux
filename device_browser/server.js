@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
 const CONTENT_DIR = process.platform === 'win32' 
   ? 'C:\\Users\\Public\\Documents\\Four Winds Interactive\\Content'
-  : '/var/lib/fwi/content';
+  : path.join(os.homedir(), 'Poppulo', 'Content');
 
 // Ensure directory exists
 if (!fs.existsSync(CONTENT_DIR)) {
@@ -90,7 +90,7 @@ app.post('/channel/download', express.json(), async (req, res) => {
   try {
     const { channelId, companyId, token } = req.body;
     
-    const downloadUrl = `https://api-cloudtest1.fwi-dev.com/channels/v1/companies/${companyId}/channels/${channelId}/download`;
+    const downloadUrl = `https://api.eu1.fwicloud.com/channels/v1/companies/${companyId}/channels/${channelId}/download`;
     console.log('Fetching:', downloadUrl);
     
     const response = await fetch(downloadUrl, {
