@@ -245,6 +245,7 @@ sudo journalctl -u poppulo-player -f
 - [ ] Device activation works (serial number + invite code)
 - [ ] MQTT communication functional
 - [ ] Channel download and extraction working
+- [ ] Current channel tracking file (`current-channel.json`) created
 - [ ] Content stored correctly in `~/Poppulo/Content`
 - [ ] Service auto-starts on boot
 - [ ] Proper logging and monitoring

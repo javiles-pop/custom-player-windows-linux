@@ -198,6 +198,20 @@ app.post('/channel/download', express.json(), async (req, res) => {
         }
       }
       cleanupOldVersions(channelId, downloadInfo.version);
+      
+      // Create current channel tracker
+      const currentChannelInfo = {
+        channelId: channelId,
+        version: downloadInfo.version,
+        path: extractDir,
+        name: downloadInfo.channelName,
+        lastUpdated: new Date().toISOString()
+      };
+      
+      const trackerPath = path.join(CONTENT_DIR, 'current-channel.json');
+      fs.writeFileSync(trackerPath, JSON.stringify(currentChannelInfo, null, 2));
+      console.log(`Updated current channel tracker: ${trackerPath}`);
+      
       return res.json({ success: true, path: extractDir, version: downloadInfo.version, name: downloadInfo.channelName });
     }
     const channelData = JSON.parse(fs.readFileSync(channelJsonPath, 'utf8'));
@@ -271,6 +285,19 @@ app.post('/channel/download', express.json(), async (req, res) => {
     
     // Cleanup old versions
     cleanupOldVersions(channelId, downloadInfo.version);
+    
+    // Create current channel tracker
+    const currentChannelInfo = {
+      channelId: channelId,
+      version: downloadInfo.version,
+      path: extractDir,
+      name: downloadInfo.channelName,
+      lastUpdated: new Date().toISOString()
+    };
+    
+    const trackerPath = path.join(CONTENT_DIR, 'current-channel.json');
+    fs.writeFileSync(trackerPath, JSON.stringify(currentChannelInfo, null, 2));
+    console.log(`Updated current channel tracker: ${trackerPath}`);
     
     res.json({ success: true, path: extractDir, version: downloadInfo.version, name: downloadInfo.channelName });
   } catch (error) {

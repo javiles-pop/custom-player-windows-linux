@@ -13,6 +13,7 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 - ✅ **Device Activation & Provisioning** - Auto-activation via serial number or invite code
 - ✅ **Real-time MQTT Communication** - Cloud connectivity via Harmony
 - ✅ **Channel Download & Storage** - Downloads channel metadata, assets, and playlists locally
+- ✅ **Current Channel Tracking** - Creates `current-channel.json` file for downstream rendering apps
 - ✅ **Playlist Support** - Downloads playlist JSON and all referenced videos/images
 - ✅ **Multi-Format Support** - Videos, images, audio, documents, fonts, data files, and .dsapp
 - ✅ **System Information Collection** - Auto-detects hardware (CPU, OS, serial number)
@@ -160,7 +161,8 @@ shim-master/
      - Direct content URLs: Downloads images, HTML, and other content directly
 5. **Automatic Cleanup**: Removes all old channels (different channel IDs) to save disk space
 6. Stores locally at `C:\Users\Public\Documents\Four Winds Interactive\Content` (Windows) or `~/Poppulo/Content` (Linux)
-7. Separate rendering service reads files from disk
+7. Creates `current-channel.json` tracker file for downstream rendering applications
+8. Separate rendering service reads files from disk
 
 ### BrightSign Spoofing
 
@@ -376,6 +378,25 @@ Proprietary - Poppulo/Four Winds Interactive
 - Added support for downloading playlist JSON files
 - Automatically downloads all videos/images referenced in playlists
 - Extracts unique object IDs from URLs to prevent file overwrites
+
+### Current Channel Tracking
+
+The app creates a `current-channel.json` file in the content directory that tracks the active channel:
+
+```json
+{
+  "channelId": "4c24795c-e111-442b-89d6-7975e7d6d2d9",
+  "version": 7,
+  "path": "/home/fwiplayer/Poppulo/Content/4c24795c-e111-442b-89d6-7975e7d6d2d9.7",
+  "name": "Channel Name",
+  "lastUpdated": "2025-12-23T17:05:54.123Z"
+}
+```
+
+Downstream rendering applications can:
+- Read this file to find the current channel directory
+- Monitor it for changes to detect channel updates
+- Switch to new content immediately when channels change
 
 ### Channel Management
 - Implemented automatic cleanup of old channels
