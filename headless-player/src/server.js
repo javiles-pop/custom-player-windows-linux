@@ -30,6 +30,214 @@ class HeadlessPlayer {
     });
   }
 
+  async downloadChannelContent(extractDir, token) {
+    const fs = require('fs');
+    const path = require('path');
+    const fetch = require('node-fetch');
+    
+    // Check for channel.json (Simple/Daily channels)
+    const channelJsonPath = path.join(extractDir, 'channel.json');
+    if (fs.existsSync(channelJsonPath)) {
+      const channelData = JSON.parse(fs.readFileSync(channelJsonPath, 'utf8'));
+      const total = channelData.contentList.length;
+      
+      for (let i = 0; i < total; i++) {
+        const content = channelData.contentList[i];
+        console.log(`[${i + 1}/${total}] Downloading: ${content.id}`);
+        
+        try {
+          const contentRes = await fetch(content.url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!contentRes.ok) {
+            console.error(`Failed to download ${content.id}: HTTP ${contentRes.status}`);
+            continue;
+          }
+          
+          if (content.type === 'Playlist') {
+            const playlistJson = await contentRes.json();
+            const playlistPath = path.join(extractDir, `${content.id}.json`);
+            fs.writeFileSync(playlistPath, JSON.stringify(playlistJson, null, 2));
+            console.log(`Saved playlist: ${content.id}.json`);
+            
+            // Download playlist items
+            const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
+            for (let j = 0; j < items.length; j++) {
+              const item = items[j];
+              const itemUrl = item.URL || item.url;
+              const urlPath = new URL(itemUrl).pathname;
+              const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+              console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+              
+              try {
+                const itemRes = await fetch(itemUrl, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!itemRes.ok) continue;
+                
+                const itemBuffer = await itemRes.arrayBuffer();
+                const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+                const itemPath = path.join(extractDir, `${itemId}${ext}`);
+                fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+                console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              } catch (err) {
+                console.error(`Error downloading:`, err.message);
+              }
+            }
+          } else if (content.type === 'App') {
+            const contentBuffer = await contentRes.arrayBuffer();
+            const contentPath = path.join(extractDir, `${content.id}.dsapp`);
+            fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+            console.log(`Saved: ${content.id}.dsapp (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+          } else {
+            const contentBuffer = await contentRes.arrayBuffer();
+            const ext = this.getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
+            const contentPath = path.join(extractDir, `${content.id}${ext}`);
+            fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+            console.log(`Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+          }
+        } catch (err) {
+          console.error(`Error downloading ${content.id}:`, err.message);
+        }
+      }
+      return;
+    }
+    
+    // Check for Deployment.xml (Content Experience Builder)
+    const deploymentXmlPath = path.join(extractDir, 'Deployment.xml');
+    if (fs.existsSync(deploymentXmlPath)) {
+      console.log('No channel.json found - checking for Deployment.xml (Content Experience Builder)');
+      const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
+      const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
+      const contentPaths = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(p => p && (p.startsWith('http') || p.startsWith('\\\\')));
+      
+      console.log(`Found ${contentPaths.length} content path(s) in Deployment.xml`);
+      for (const contentPath of contentPaths) {
+        try {
+          // Handle UNC network share paths
+          if (contentPath.startsWith('\\\\')) {
+            const fileName = path.basename(contentPath);
+            const destPath = path.join(extractDir, fileName);
+            console.log(`Copying from network share: ${fileName}`);
+            try {
+              fs.copyFileSync(contentPath, destPath);
+              const stats = fs.statSync(destPath);
+              console.log(`Saved: ${fileName} (${(stats.size / 1024).toFixed(2)} KB)`);
+            } catch (err) {
+              console.error(`Failed to copy ${fileName}:`, err.message);
+            }
+            continue;
+          }
+          
+          // Handle HTTP/HTTPS URLs
+          if (contentPath.includes('/playlist/') && contentPath.includes('/json')) {
+            console.log(`Downloading playlist: ${contentPath}`);
+            const playlistRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!playlistRes.ok) continue;
+            
+            const playlistJson = await playlistRes.json();
+            const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
+            
+            for (let j = 0; j < items.length; j++) {
+              const item = items[j];
+              const itemUrl = item.URL || item.url;
+              if (!itemUrl) continue;
+              
+              const urlPath = new URL(itemUrl).pathname;
+              const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+              console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+              
+              const itemRes = await fetch(itemUrl, { headers: { 'Authorization': `Bearer ${token}` } });
+              if (!itemRes.ok) continue;
+              
+              const itemBuffer = await itemRes.arrayBuffer();
+              const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+              const itemPath = path.join(extractDir, `${itemId}${ext}`);
+              fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+              console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+            }
+          } else {
+            const urlPath = new URL(contentPath).pathname;
+            const contentId = urlPath.split('/objects/')[1]?.split('/')[0];
+            if (!contentId) continue;
+            
+            console.log(`Downloading content: ${contentId}`);
+            const contentRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!contentRes.ok) continue;
+            
+            const contentBuffer = await contentRes.arrayBuffer();
+            const ext = this.getFileExtension(contentPath, contentRes.headers.get('content-type'), null);
+            const filePath = path.join(extractDir, `${contentId}${ext}`);
+            fs.writeFileSync(filePath, Buffer.from(contentBuffer));
+            console.log(`Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+          }
+        } catch (err) {
+          console.error(`Error downloading content:`, err.message);
+        }
+      }
+    }
+  }
+
+  getFileExtension(url, contentType, fallbackType) {
+    const path = require('path');
+    const urlExt = path.extname(new URL(url).pathname).toLowerCase();
+    if (urlExt && urlExt.length > 1) return urlExt;
+    
+    const typeMap = {
+      'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/png': '.png', 'image/svg+xml': '.svg', 'image/gif': '.gif', 'image/webp': '.webp',
+      'video/mp4': '.mp4', 'video/webm': '.webm', 'video/quicktime': '.mov',
+      'audio/mpeg': '.mp3', 'audio/mp3': '.mp3',
+      'application/pdf': '.pdf',
+      'application/vnd.ms-powerpoint': '.ppt', 'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+      'application/x-dsapp': '.dsapp', 'application/octet-stream': '.dsapp',
+      'text/html': '.html', 'application/xhtml+xml': '.html',
+      'font/ttf': '.ttf', 'application/x-font-ttf': '.ttf', 'font/opentype': '.otf', 'application/x-font-opentype': '.otf',
+      'application/json': '.json', 'text/json': '.json', 'application/xml': '.xml', 'text/xml': '.xml'
+    };
+    
+    if (contentType && typeMap[contentType.split(';')[0].trim()]) {
+      return typeMap[contentType.split(';')[0].trim()];
+    }
+    
+    if (fallbackType === 'Image') return '.jpg';
+    if (fallbackType === 'Video') return '.mp4';
+    if (fallbackType === 'App') return '.dsapp';
+    
+    return '.mp4';
+  }
+
+  cleanupOldVersions(contentDir, channelId, currentVersion) {
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const files = fs.readdirSync(contentDir);
+      const currentChannelPrefix = `${channelId}.${currentVersion}`;
+      
+      files.forEach(file => {
+        // Skip if it's the current channel
+        if (file.startsWith(currentChannelPrefix)) return;
+        
+        // Remove any other channel directories or ZIPs
+        const fullPath = path.join(contentDir, file);
+        const stats = fs.statSync(fullPath);
+        
+        // Match both UUID channels (cloud) and name channels (standard)
+        // Pattern: anything.number or anything.number.zip
+        if (stats.isDirectory() && file.match(/^.+\.\d+$/)) {
+          fs.rmSync(fullPath, { recursive: true, force: true });
+          console.log(`Removed old channel: ${file}`);
+        } else if (file.endsWith('.zip') && file.match(/^.+\.\d+\.zip$/)) {
+          fs.unlinkSync(fullPath);
+          console.log(`Deleted old channel ZIP: ${file}`);
+        }
+      });
+    } catch (err) {
+      console.error('Cleanup error:', err.message);
+    }
+  }
+
   setupRoutes() {
     this.app.get('/system/info', async (req, res) => {
       try {
@@ -87,6 +295,12 @@ class HeadlessPlayer {
         const zip = new AdmZip(filepath);
         zip.extractAllTo(extractDir, true);
         console.log(`Extracted to: ${extractDir}`);
+        
+        // Download content files
+        await this.downloadChannelContent(extractDir, token);
+        
+        // Cleanup old channels
+        this.cleanupOldVersions(contentDir, channelId, downloadInfo.version);
         
         // Create current channel tracker
         const currentChannelInfo = {

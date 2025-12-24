@@ -24,8 +24,22 @@ class MQTTClient {
       if (config.activated) {
         console.log('Device already activated, connecting with saved credentials');
         this.provisionedDevice = config.provisionedDevice;
-        await this.connectAuthenticated();
-        return;
+        try {
+          await this.connectAuthenticated();
+          return;
+        } catch (error) {
+          // If authentication fails (user deleted), clear config and restart
+          if (error.code === 'UserNotFoundException') {
+            console.log('Device user no longer exists in cloud, clearing configuration');
+            delete config.provisionedDevice;
+            delete config.activated;
+            this.deviceManager.saveConfig(config);
+            console.log('Configuration cleared. Restarting to re-provision...');
+            setTimeout(() => process.exit(0), 1000);
+            return;
+          }
+          throw error;
+        }
       }
       
       // Check if device has provisioned info but not activated
@@ -297,8 +311,45 @@ class MQTTClient {
     config.provisionedDevice = data;
     this.deviceManager.saveConfig(config);
 
-    // Now do full authentication like browser does
-    await this.doFullAuthentication();
+    // Get authenticated session and send activation payload
+    try {
+      const awsSettings = await this.getAWSSettings();
+      const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
+      console.log('Got authenticated Cognito session');
+      
+      const authenticatedCredentials = await this.getAuthenticatedCognitoIdentity(
+        session,
+        this.provisionedDevice.cognitoUserPoolId,
+        awsSettings
+      );
+      
+      const identityId = authenticatedCredentials.identityId;
+      const activationPayload = {
+        env: process.env.ENVIRONMENT || 'dev',
+        inviteCode: this.currentInviteCode,
+        deviceId: this.provisionedDevice.deviceId,
+        principal: identityId,
+        companyId: this.provisionedDevice.companyId
+      };
+      
+      console.log(`[ACTIVATION] sending activation payload: ${JSON.stringify(activationPayload)}`);
+      
+      await this.mqtt.subscribe({
+        subscriptions: [{
+          topicFilter: `fwi/activate/${this.currentInviteCode}`,
+          qos: mqtt5.QoS.AtLeastOnce
+        }]
+      });
+      
+      await this.mqtt.publish({
+        topicName: 'fwi/activate',
+        payload: JSON.stringify(activationPayload),
+        qos: mqtt5.QoS.AtLeastOnce
+      });
+      
+    } catch (error) {
+      console.error('Authentication failed:', error);
+    }
   }
 
   async handleActivationResponse(data) {
@@ -310,8 +361,17 @@ class MQTTClient {
       config.activated = true;
       this.deviceManager.saveConfig(config);
       
-      // Subscribe to device topics for ongoing communication
-      await this.subscribeToDeviceTopics();
+      // Close current connection and reconnect with authenticated credentials
+      this.mqtt.stop();
+      
+      // Wait a moment then reconnect authenticated
+      setTimeout(async () => {
+        try {
+          await this.connectAuthenticated();
+        } catch (error) {
+          console.error('Failed to reconnect with authenticated credentials:', error);
+        }
+      }, 1000);
     } else {
       console.error('Activation failed:', data);
     }
@@ -461,6 +521,13 @@ class MQTTClient {
   }
 
   async handleCommand(data) {
+    // Handle device deletion
+    if (data.status === 'deleted') {
+      console.log('[ACTIVATION] Device deactivated by cloud');
+      this.resetOnDeactivation();
+      return;
+    }
+    
     if (data.command === 'playerCommand') {
       console.log(`Executing command: ${data.commandName}`);
       
@@ -584,6 +651,25 @@ class MQTTClient {
 
   isConnected() {
     return this.isConnectedFlag;
+  }
+
+  resetOnDeactivation() {
+    console.log('Resetting device configuration due to deactivation');
+    
+    // Clear device configuration like browser version
+    const config = this.deviceManager.loadConfig();
+    delete config.provisionedDevice;
+    delete config.activated;
+    this.deviceManager.saveConfig(config);
+    
+    // Close MQTT connection
+    if (this.mqtt) {
+      this.mqtt.stop();
+    }
+    
+    // Restart the service
+    console.log('Device deactivated. Restarting service...');
+    setTimeout(() => process.exit(0), 1000);
   }
 
   async activateWithInviteCode(inviteCode) {

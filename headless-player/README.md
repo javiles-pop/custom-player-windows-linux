@@ -197,6 +197,30 @@ src/
 3. Handle MQTT messages in mqtt-client.js
 4. Update this README
 
+## Recent Updates
+
+### Complete MQTT Integration (Latest)
+- ✅ **Full MQTT Activation Flow** - Both auto-activation (serial) and manual activation (invite code)
+- ✅ **AWS IoT Core Integration** - Migrated to aws-iot-device-sdk-v2 with MQTT5 client
+- ✅ **Automatic Channel Downloads** - Triggered by MQTT shadow updates from cloud
+- ✅ **Content File Downloads** - Downloads all content files from channels (videos, images, playlists, etc.)
+- ✅ **Channel Cleanup** - Automatically removes old channels to save disk space
+- ✅ **Token Management** - Handles fresh API tokens from broadcast messages
+- ✅ **Device Deletion Recovery** - Automatic config reset when device deleted from cloud
+- ✅ **Persistent Connection** - Maintains MQTT connection across service restarts
+
+### Content Download System
+- **Simple/Daily Channels**: Downloads content from `channel.json`
+- **Content Experience Builder**: Parses `Deployment.xml` for content URLs
+- **Playlist Support**: Downloads playlist JSON and all referenced media files
+- **Multi-Format Support**: Videos, images, audio, documents, fonts, data files, .dsapp
+- **Network Share Support**: Copies files from UNC paths (e.g., `\\server\share\file.mp4`)
+
+### Channel Management
+- **Automatic Cleanup**: Removes old channels when downloading new ones
+- **Current Channel Tracking**: Creates `current-channel.json` for rendering apps
+- **Version Management**: Handles channel version updates seamlessly
+
 ## License
 
 Proprietary - Poppulo/Four Winds Interactive
