@@ -22,12 +22,12 @@
 
 ## 🔧 Building for production:
 
-### 4. **[ELECTRON.md](ELECTRON.md)** - Windows/Linux installers
+### 4. **[../device_browser/ELECTRON.md](../device_browser/ELECTRON.md)** - Windows/Linux installers
 ### 5. **[LINUX-INSTALLER.md](LINUX-INSTALLER.md)** - Ubuntu packaging details
 
 ## 🎯 Special situations:
 
-### Coming from old shim? **[MIGRATION-GUIDE.md](MIGRATION-GUIDE.md)**
+### Coming from old shim? **[../device_browser/MIGRATION-GUIDE.md](../device_browser/MIGRATION-GUIDE.md)**
 *Key differences from BrightSign/Samsung/LG players*
 
 ### Having issues? **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
@@ -35,7 +35,7 @@
 
 ### Advanced topics:
 - **[MQTT-ARCHITECTURE.md](MQTT-ARCHITECTURE.md)** - Deep dive into cloud communication
-- **[PARTNER-SETUP-GUIDE.md](PARTNER-SETUP-GUIDE.md)** - Partner deployment
+- **[../device_browser/PARTNER-SETUP-GUIDE.md](../device_browser/PARTNER-SETUP-GUIDE.md)** - Partner deployment
 
 ---
 

@@ -66,7 +66,7 @@ Guide for developers familiar with the original shim-master (BrightSign, Samsung
 **New Browser Player:**
 - Node.js server handles file I/O
 - Windows: `C:\Users\Public\Documents\Four Winds Interactive\Content`
-- Linux: `/var/lib/fwi/content`
+- Linux: `~/Poppulo/Content`
 - Browser can't write to disk directly
 
 ## Architecture Changes
@@ -311,7 +311,7 @@ A: No, use Windows/Linux OS network settings.
 
 **Q: Where are the downloaded files?**
 A: Windows: `C:\Users\Public\Documents\Four Winds Interactive\Content`
-   Linux: `/var/lib/fwi/content`
+   Linux: `~/Poppulo/Content`
 
 **Q: How do I test without hardware?**
 A: Just run on any Windows/Linux machine with Node.js and a browser.

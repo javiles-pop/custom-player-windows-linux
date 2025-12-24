@@ -42,18 +42,18 @@ export VERSION=2.0.0
 export BUILD_NUMBER=dev
 ```
 
-**Production:**
+**Production (EU1):**
 
 ```powershell
 # Windows PowerShell
-$env:ENVIRONMENT="prod"
+$env:ENVIRONMENT="prod-eu"
 $env:VERSION="2.0.0"
 $env:BUILD_NUMBER="1"
 ```
 
 ```bash
 # Linux/Mac
-export ENVIRONMENT=prod
+export ENVIRONMENT=prod-eu
 export VERSION=2.0.0
 export BUILD_NUMBER=1
 ```
@@ -164,7 +164,7 @@ npm run electron:build:linux
 ```
 Output: `device_browser/release/@fwi/shim-browser-2.0.0.tar.gz`
 
-See [ELECTRON.md](ELECTRON.md) for detailed Electron build instructions.
+See [../device_browser/ELECTRON.md](../device_browser/ELECTRON.md) for detailed Electron build instructions.
 See [LINUX-INSTALLER.md](LINUX-INSTALLER.md) for Linux-specific details.
 
 ## Environment Options
@@ -186,6 +186,6 @@ See [LINUX-INSTALLER.md](LINUX-INSTALLER.md) for Linux-specific details.
 ## Next Steps
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - How the system works
-- [ELECTRON.md](ELECTRON.md) - Building Electron installers
+- [../device_browser/ELECTRON.md](../device_browser/ELECTRON.md) - Building Electron installers
 - [LINUX-INSTALLER.md](LINUX-INSTALLER.md) - Linux build and installation
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues

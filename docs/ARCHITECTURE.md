@@ -4,7 +4,19 @@ How the Custom Player works under the hood.
 
 ## Overview
 
-This is a browser-based player that downloads channel content to disk but does NOT render it. A separate rendering service reads the downloaded files.
+This project provides two implementations of a content download player that does NOT render content. Both download channel metadata and assets to disk for use by separate rendering services.
+
+### Two Implementations
+
+**1. Browser Player (device_browser/)**
+- Electron-based GUI application
+- React/Redux frontend with Node.js backend
+- For desktop environments and kiosk setups
+
+**2. Headless Service (headless-player/)**
+- Pure Node.js service
+- No GUI, runs as system service
+- For servers and embedded systems
 
 ## Key Components
 
@@ -16,10 +28,14 @@ This is a browser-based player that downloads channel content to disk but does N
 3. Falls back to invite code if needed
 4. Connects to Harmony via MQTT (AWS IoT)
 
-**Files:**
+**Files (Browser Player):**
 - `device_browser/server.js` - `/system/info` endpoint
 - `device_browser/src/Browser.ts` - System info methods
 - `core/src/Flows/ActivationFlow.ts` - Activation logic
+
+**Files (Headless Service):**
+- `headless-player/src/device-manager.js` - System info detection
+- `headless-player/src/mqtt-client.js` - MQTT activation flow
 
 ### 2. Channel Download
 
@@ -34,10 +50,15 @@ This is a browser-based player that downloads channel content to disk but does N
    - Direct content URLs: Downloads content directly (images, HTML, etc.)
 6. **Cleanup:** Removes old channels (different IDs)
 
-**Files:**
+**Files (Browser Player):**
 - `device_browser/server.js` - `/channel/download` endpoint
 - `device_browser/src/injectChannelURL.js` - Download trigger
 - `core/src/MQTT/Shadow.ts` - Channel assignment detection
+
+**Files (Headless Service):**
+- `headless-player/src/server.js` - `/channel/download` endpoint
+- `headless-player/src/channel-manager.js` - Channel and content downloads
+- `headless-player/src/mqtt-client.js` - Shadow delta handling
 
 **Storage Structure:**
 ```
@@ -233,4 +254,4 @@ shim-master/
 **Linux:**
 - Uses `/proc` and `/sys` for system info
 - Paths use forward slashes
-- Storage: `/var/lib/fwi/content`
+- Storage: `~/Poppulo/Content`

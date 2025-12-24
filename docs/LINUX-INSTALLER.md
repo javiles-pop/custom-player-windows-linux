@@ -368,7 +368,7 @@ X-GNOME-Autostart-enabled=true
 
 For issues or questions:
 - Check logs: `cat ~/Desktop/shim-browser-2.0.0/app.log`
-- Verify permissions: `ls -la /var/lib/fwi/content`
+- Verify permissions: `ls -la ~/Poppulo/Content`
 - Test Node server: `curl http://localhost:3001/system/info`
 - Contact DS-Core team
 

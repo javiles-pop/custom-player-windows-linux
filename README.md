@@ -283,11 +283,11 @@ yarn test:cypress      # UI tests
 
 - [GETTING-STARTED.md](docs/GETTING-STARTED.md) - Quick start guide for development
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - How the system works
-- [ELECTRON.md](docs/ELECTRON.md) - Electron app setup and debugging
+- [device_browser/ELECTRON.md](device_browser/ELECTRON.md) - Electron app setup and debugging
 - [LINUX-INSTALLER.md](docs/LINUX-INSTALLER.md) - Building and installing on Ubuntu Linux
 - [HEADLESS-UBUNTU.md](docs/HEADLESS-UBUNTU.md) - Headless service implementation guide
 - [headless-player/README.md](headless-player/README.md) - Headless service usage and installation
-- [MIGRATION-GUIDE.md](docs/MIGRATION-GUIDE.md) - For developers familiar with BrightSign/Samsung/LG shim
+- [device_browser/MIGRATION-GUIDE.md](device_browser/MIGRATION-GUIDE.md) - For developers familiar with BrightSign/Samsung/LG shim
 - [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
 ## Architecture

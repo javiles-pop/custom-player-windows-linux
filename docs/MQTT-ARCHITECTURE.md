@@ -1,10 +1,10 @@
-# MQTT Architecture - Device Browser
+# MQTT Architecture - Windows/Linux Players
 
-This document outlines how the device_browser uses MQTT for device activation, provisioning, and ongoing management with Poppulo's Harmony cloud platform.
+This document outlines how both the device_browser and headless-player use MQTT for device activation, provisioning, and ongoing management with Poppulo's Harmony cloud platform.
 
 ## Overview
 
-The device_browser implements a two-phase MQTT communication system:
+The device_browser and headless-player implement a two-phase MQTT communication system:
 1. **Unauthenticated Phase**: Device activation and provisioning
 2. **Authenticated Phase**: Ongoing device management and real-time communication
 
@@ -84,6 +84,8 @@ The system uses **AWS IoT Core** as the MQTT broker with **AWS Cognito** for aut
 - Incorrect Cognito service usage (Identity Pool vs User Pool confusion)
 
 ### Core Files
+
+**Browser Player:**
 - `core/src/MQTT/index.ts` - Main MQTT connection management
 - `core/src/MQTT/Activation.ts` - Device activation and provisioning
 - `core/src/MQTT/MessageRouter.ts` - Message routing and handling
@@ -91,6 +93,12 @@ The system uses **AWS IoT Core** as the MQTT broker with **AWS Cognito** for aut
 - `core/src/MQTT/Commands.ts` - Remote command execution
 - `device_browser/src/Browser.ts` - Device API implementation
 - `device_browser/server.js` - Node server for channel downloads
+
+**Headless Service:**
+- `headless-player/src/mqtt-client.js` - MQTT connection and message handling
+- `headless-player/src/device-manager.js` - Device info and activation
+- `headless-player/src/channel-manager.js` - Channel downloads
+- `headless-player/src/server.js` - HTTP server for local API
 
 ## Phase 1: Device Activation & Provisioning
 

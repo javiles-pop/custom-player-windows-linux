@@ -138,19 +138,19 @@ GET https://cdn.segment.com/analytics.js/... net::ERR_BLOCKED_BY_CLIENT
 
 ---
 
-### 6. Linux: Permission Denied on /var/lib/fwi/content
+### 6. Linux: Permission Denied on ~/Poppulo/Content
 
 **Error:**
 ```
-Error: EACCES: permission denied, mkdir '/var/lib/fwi/content'
+Error: EACCES: permission denied, mkdir '~/Poppulo/Content'
 ```
 
 **Cause:** Node server cannot create content directory.
 
 **Fix:**
 ```bash
-sudo mkdir -p /var/lib/fwi/content
-sudo chown -R $USER:$USER /var/lib/fwi
+mkdir -p ~/Poppulo/Content
+chmod 755 ~/Poppulo/Content
 ```
 
 ---
@@ -254,8 +254,8 @@ Before running the player, ensure:
 - Run installer as Administrator for best results
 
 ### Linux (Ubuntu)
-- Content stored in: `/var/lib/fwi/content`
-- Requires `/var/lib/fwi/content` directory with write permissions
+- Content stored in: `~/Poppulo/Content`
+- Content directory created automatically in user home
 - Must run with `--no-sandbox` flag
 - Cannot run via SSH without X11 forwarding
 - See [LINUX-INSTALLER.md](LINUX-INSTALLER.md) for complete setup
