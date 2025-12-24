@@ -1,0 +1,249 @@
+name: CI
+
+on:
+  push:
+    branches-ignore:
+      - 'main'
+      - 'docs'
+
+env:
+  BUILDER_VERSION: v0.9.84
+  BUILDER_SOURCE: releases
+  BUILDER_HOST: https://d19elf31gohf1l.cloudfront.net
+  PACKAGE_NAME: aws-iot-device-sdk-js-v2
+  LINUX_BASE_IMAGE: ubuntu-16-x64
+  RUN: ${{ github.run_id }}-${{ github.run_number }}
+  AWS_DEFAULT_REGION: us-east-1
+  DA_TOPIC: test/da
+  DA_SHADOW_PROPERTY: datest
+  DA_SHADOW_VALUE_SET: ON
+  DA_SHADOW_VALUE_DEFAULT: OFF
+  CI_FLEET_PROVISIONING_ROLE: arn:aws:iam::180635532705:role/service-role/CI_FleetProvisioning_Role
+  CI_MQTT5_ROLE: arn:aws:iam::180635532705:role/CI_MQTT5_Role
+  CI_SHADOW_SERVICE_CLIENT_ROLE: arn:aws:iam::180635532705:role/CI_ShadowServiceClient_Role
+  CI_JOBS_SERVICE_CLIENT_ROLE: arn:aws:iam::180635532705:role/CI_JobsServiceClient_Role
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    steps:
+    - name: Build ${{ env.PACKAGE_NAME }}
+      run: |
+        python -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder.pyz')"
+        python builder.pyz build -p ${{ env.PACKAGE_NAME }}
+
+  osx:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    steps:
+    - name: Build ${{ env.PACKAGE_NAME }}
+      run: |
+        python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+        chmod a+x builder
+        ./builder build -p ${{ env.PACKAGE_NAME }}
+
+  linux:
+    runs-on: ubuntu-22.04 # latest
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    steps:
+    - name: Build ${{ env.PACKAGE_NAME }}
+      run: |
+        python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+        chmod a+x builder
+        ./builder build -p ${{ env.PACKAGE_NAME }}
+
+  v2-service-client-tests:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-latest
+          - ubuntu-22.04
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+      - name: Build ${{ env.PACKAGE_NAME }}
+        run: |
+          npm install
+      - name: Install boto3
+        run: |
+          python3 -m venv .venv
+          source .venv/bin/activate
+          python3 -m pip install boto3
+      - name: configure AWS credentials (MQTT5)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.CI_MQTT5_ROLE }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      - name: Service tests
+        shell: bash
+        run: |
+          source utils/test_setup.sh s3://iot-sdk-ci-bucket-us-east1/IotUsProdMqtt5EnvironmentVariables.txt us-east-1
+          npm run test -- iotshadowclientv2
+          npm run test -- iotidentityclientv2
+          npm run test -- iotjobsclientv2
+          source utils/test_cleanup.sh
+
+  v2-service-client-tests-win:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - windows-2022
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    steps:
+      - name: Checkout Sources
+        uses: actions/checkout@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 16
+      - name: Build ${{ env.PACKAGE_NAME }}
+        run: |
+          npm install
+      - name: Install boto3
+        run: |
+          python3 -m pip install boto3
+      - name: configure AWS credentials (MQTT5)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.CI_MQTT5_ROLE }}
+          aws-region: ${{ env.AWS_DEFAULT_REGION }}
+      - name: Service tests
+        shell: bash
+        run: |
+          source utils/test_setup.sh s3://iot-sdk-ci-bucket-us-east1/IotUsProdMqtt5EnvironmentVariables.txt us-east-1
+          npm run test -- iotshadowclientv2
+          npm run test -- iotidentityclientv2
+          npm run test -- iotjobsclientv2
+          source utils/test_cleanup.sh
+
+  # Runs the samples and ensures that everything is working
+  linux-smoke-tests:
+    runs-on: ubuntu-22.04
+    permissions:
+      id-token: write # This is required for requesting the JWT
+    steps:
+    - name: Build ${{ env.PACKAGE_NAME }}
+      run: |
+        python3 -c "from urllib.request import urlretrieve; urlretrieve('${{ env.BUILDER_HOST }}/${{ env.BUILDER_SOURCE }}/${{ env.BUILDER_VERSION }}/builder.pyz?run=${{ env.RUN }}', 'builder')"
+        chmod a+x builder
+        ./builder build -p ${{ env.PACKAGE_NAME }}
+    - name: Running samples and service clients tests in CI setup
+      run: |
+        python3 -m pip install boto3
+        sudo apt-get update -y
+        sudo apt-get install softhsm2 -y
+        softhsm2-util --version
+    - name: configure AWS credentials (Shadow)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CI_SHADOW_SERVICE_CLIENT_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+    - name: run Shadow service client test for MQTT311
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_shadow_update.py --config-file test_cases/mqtt3_shadow_cfg.json
+    - name: run Shadow service client test for MQTT5
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_shadow_update.py --config-file test_cases/mqtt5_shadow_cfg.json
+    - name: run Named Shadow service client test for MQTT311
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_shadow_update.py --config-file test_cases/mqtt3_named_shadow_cfg.json
+    - name: run Named Shadow service client test for MQTT5
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_shadow_update.py --config-file test_cases/mqtt5_named_shadow_cfg.json
+    - name: configure AWS credentials (Fleet provisioning)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CI_FLEET_PROVISIONING_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+    - name: run Fleet Provisioning service client test for MQTT311
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_fleet_provisioning.py --config-file test_cases/mqtt3_fleet_provisioning_cfg.json --thing-name-prefix Fleet_Thing_
+    - name: run Fleet Provisioning service client test for MQTT5
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_fleet_provisioning.py --config-file test_cases/mqtt5_fleet_provisioning_cfg.json --thing-name-prefix Fleet_Thing_
+    - name: run Fleet Provisioning with CSR service client test for MQTT311
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_fleet_provisioning.py --config-file test_cases/mqtt3_fleet_provisioning_with_csr_cfg.json --thing-name-prefix Fleet_Thing_
+    - name: run Fleet Provisioning with CSR service client test for MQTT5
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_fleet_provisioning.py --config-file test_cases/mqtt5_fleet_provisioning_with_csr_cfg.json --thing-name-prefix Fleet_Thing_
+    - name: configure AWS credentials (Jobs)
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.CI_JOBS_SERVICE_CLIENT_ROLE }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
+    - name: run Jobs service client test for MQTT311
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_jobs_execution.py --config-file test_cases/mqtt3_jobs_cfg.json
+    - name: run Jobs service client test for MQTT5
+      working-directory: ./aws-iot-device-sdk-js-v2/servicetests
+      run: |
+        export PYTHONPATH=${{ github.workspace }}/aws-iot-device-sdk-js-v2/utils
+        python3 ./test_cases/test_jobs_execution.py --config-file test_cases/mqtt5_jobs_cfg.json
+
+  # check that docs can still build
+  check-docs:
+    runs-on: ubuntu-22.04 # latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check docs
+        run: |
+          npm ci
+          ./make-docs.sh
+
+  check-codegen-edits:
+    runs-on: ubuntu-22.04 # latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check for edits to code-generated files
+        run: |
+          ./utils/check_codegen_edits.py
+
+  check-lockfile-version:
+    runs-on: ubuntu-22.04 # latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check for edits to package-lock.json
+        run: |
+          test `jq -r '.lockfileVersion' package-lock.json` = 1
+

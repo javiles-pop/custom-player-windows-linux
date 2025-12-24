@@ -19,7 +19,20 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 - ✅ **System Information Collection** - Auto-detects hardware (CPU, OS, serial number)
 - ✅ **Automatic Channel Cleanup** - Removes old channels when downloading new ones
 - ✅ **Simplified UI** - Streamlined menu with essential features only (network managed by OS)
+- ✅ **Headless Service** - Pure Node.js service for servers without GUI requirements
 - ❌ **Content Rendering** - NOT included (use separate rendering service)
+
+## Deployment Options
+
+### GUI Version (Electron)
+- **Windows**: NSIS installer with desktop GUI
+- **Linux**: Electron app with X11/Wayland display server
+- **Use Case**: Desktop environments, kiosk setups with display
+
+### Headless Service (Node.js)
+- **Linux**: Pure Node.js service with systemd integration
+- **Use Case**: Servers, embedded systems, headless deployments
+- **Benefits**: No display server required, smaller footprint, better for automation
 
 ## Requirements
 
@@ -43,10 +56,16 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 3. Follow the installation wizard
 4. Launch from Start Menu or Desktop shortcut
 
-**Linux (Ubuntu):**
+**Linux (Ubuntu) - GUI Version:**
 1. Download `shim-browser-2.0.0.tar.gz`
 2. Extract: `tar -xzf shim-browser-2.0.0.tar.gz`
 3. Run: `cd shim-browser-2.0.0 && chmod +x @fwishim-browser && ./@fwishim-browser --no-sandbox`
+
+**Linux (Ubuntu) - Headless Service:**
+1. Download `poppulo-player-headless-2.0.0.tar.gz`
+2. Extract: `tar -xzf poppulo-player-headless-2.0.0.tar.gz`
+3. Install: `cd poppulo-player-headless-2.0.0 && sudo ./install.sh`
+4. Start: `sudo systemctl start poppulo-player`
 
 **Note:** Content directory `~/Poppulo/Content` is created automatically - no manual setup required.
 
@@ -135,6 +154,17 @@ shim-master/
 │   ├── webpack.server.js    # Webpack config for server bundling
 │   ├── electron-main.js     # Electron main process
 │   └── package.json
+├── headless-player/         # Headless service implementation
+│   ├── src/
+│   │   ├── server.js        # Main headless service
+│   │   ├── device-manager.js # Device info and activation
+│   │   ├── channel-manager.js # Channel downloads
+│   │   └── mqtt-client.js   # MQTT communication
+│   ├── systemd/
+│   │   └── poppulo-player.service # Systemd service file
+│   ├── install.sh           # Installation script
+│   ├── package.json         # Headless dependencies
+│   └── README.md            # Headless documentation
 ├── webpack.config.base.js   # Base webpack config
 ├── package.json             # Root dependencies
 └── README.md
@@ -253,6 +283,8 @@ yarn test:cypress      # UI tests
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - How the system works
 - [ELECTRON.md](docs/ELECTRON.md) - Electron app setup and debugging
 - [LINUX-INSTALLER.md](docs/LINUX-INSTALLER.md) - Building and installing on Ubuntu Linux
+- [HEADLESS-UBUNTU.md](docs/HEADLESS-UBUNTU.md) - Headless service implementation guide
+- [headless-player/README.md](headless-player/README.md) - Headless service usage and installation
 - [MIGRATION-GUIDE.md](docs/MIGRATION-GUIDE.md) - For developers familiar with BrightSign/Samsung/LG shim
 - [TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - Common issues and solutions
 
