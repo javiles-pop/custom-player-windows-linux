@@ -30,6 +30,7 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 - **Use Case**: Desktop environments, kiosk setups with display
 
 ### Headless Service (Node.js)
+- **Windows**: Pure Node.js service with Windows Service integration
 - **Linux**: Pure Node.js service with systemd integration
 - **Use Case**: Servers, embedded systems, headless deployments
 - **Benefits**: No display server required, smaller footprint, better for automation
@@ -62,10 +63,11 @@ This is a browser-based player that runs on Windows and Linux systems, providing
 3. Run: `cd shim-browser-2.0.0 && chmod +x @fwishim-browser && ./@fwishim-browser --no-sandbox`
 
 **Linux (Ubuntu) - Headless Service:**
-1. Download `poppulo-player-headless-2.0.0.tar.gz`
-2. Extract: `tar -xzf poppulo-player-headless-2.0.0.tar.gz`
-3. Install: `cd poppulo-player-headless-2.0.0 && sudo ./install.sh`
-4. Start: `sudo systemctl start poppulo-player`
+1. Copy headless-player folder to Linux machine
+2. Install: `cd headless-player && npm install`
+3. Set environment: `export ENVIRONMENT=prod-eu VERSION=2.0.0 BUILD_NUMBER=1`
+4. Start: `npm start`
+5. Optional: Install as systemd service with `sudo ./install.sh`
 
 **Note:** Content directory `~/Poppulo/Content` is created automatically - no manual setup required.
 
@@ -99,18 +101,18 @@ export VERSION=2.0.0
 export BUILD_NUMBER=dev
 ```
 
-**Production:**
+**Production (EU1):**
 
 **Windows (PowerShell):**
 ```powershell
-$env:ENVIRONMENT="prod"
+$env:ENVIRONMENT="prod-eu"
 $env:VERSION="2.0.0"
 $env:BUILD_NUMBER="1"
 ```
 
 **Linux/Mac:**
 ```bash
-export ENVIRONMENT=prod
+export ENVIRONMENT=prod-eu
 export VERSION=2.0.0
 export BUILD_NUMBER=1
 ```
@@ -371,6 +373,13 @@ Proprietary - Poppulo/Four Winds Interactive
 - **Playlists**: JSON playlists
 
 ## Recent Updates
+
+### Production EU1 Support & Cross-Platform Testing (Latest)
+- ✅ **EU1 Production Ready** - Both implementations tested and working with `prod-eu` environment
+- ✅ **Environment-Based API URLs** - Automatic API endpoint selection based on environment variables
+- ✅ **Cross-Platform Verified** - Windows and Linux deployments tested with EU1 production
+- ✅ **Headless Service Enhanced** - Full MQTT integration with proper activation flow
+- ✅ **Documentation Streamlined** - Improved reading order and role-based paths for developers
 
 ### Windows and Linux Installers (Latest)
 - Windows NSIS installer (.exe) with GUI wizard

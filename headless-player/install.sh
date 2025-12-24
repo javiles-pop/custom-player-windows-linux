@@ -21,12 +21,9 @@ chown -R fwiplayer:fwiplayer /home/fwiplayer
 
 # Copy files
 cp -r src/ /opt/poppulo-player/
+cp -r node_modules/ /opt/poppulo-player/
 cp package*.json /opt/poppulo-player/
 chown -R fwiplayer:fwiplayer /opt/poppulo-player
-
-# Install dependencies
-cd /opt/poppulo-player
-npm install --production
 
 # Install systemd service
 cp systemd/poppulo-player.service /etc/systemd/system/

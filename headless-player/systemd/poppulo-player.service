@@ -10,7 +10,7 @@ ExecStart=/usr/bin/node src/server.js
 Restart=always
 RestartSec=10
 Environment=NODE_ENV=production
-Environment=ENVIRONMENT=prod
+Environment=ENVIRONMENT=prod-eu
 Environment=VERSION=2.0.0
 Environment=BUILD_NUMBER=1
 

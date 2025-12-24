@@ -73,9 +73,11 @@ The service automatically starts on system boot. Content is stored at `C:\Users\
 
 Both service configurations set:
 - `NODE_ENV=production`
-- `ENVIRONMENT=prod` (or `prod-eu`, `prod-ap`)
+- `ENVIRONMENT=prod-eu` (or `prod`, `prod-ap`)
 - `VERSION=2.0.0`
 - `BUILD_NUMBER=1`
+
+**Note:** For Linux systemd service, environment variables are hardcoded in `systemd/poppulo-player.service`. To change environments (e.g., from `prod-eu` to `prod`), edit the service file before running `./install.sh`.
 
 ### Uninstall Services
 
