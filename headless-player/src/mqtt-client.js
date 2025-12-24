@@ -22,35 +22,35 @@ class MQTTClient {
       
       // Check if device is already activated
       if (config.activated) {
-        console.log('Device already activated, connecting with saved credentials');
-        this.provisionedDevice = config.provisionedDevice;
-        try {
-          await this.connectAuthenticated();
+      console.log('[DEVICE] Device already activated, connecting with saved credentials');
+      this.provisionedDevice = config.provisionedDevice;
+      try {
+        await this.connectAuthenticated();
+        return;
+      } catch (error) {
+        // If authentication fails (user deleted), clear config and restart
+        if (error.code === 'UserNotFoundException') {
+          console.log('[DEVICE] Device user no longer exists in cloud, clearing configuration');
+          delete config.provisionedDevice;
+          delete config.activated;
+          this.deviceManager.saveConfig(config);
+          console.log('[DEVICE] Configuration cleared. Restarting to re-provision...');
+          setTimeout(() => process.exit(0), 1000);
           return;
-        } catch (error) {
-          // If authentication fails (user deleted), clear config and restart
-          if (error.code === 'UserNotFoundException') {
-            console.log('Device user no longer exists in cloud, clearing configuration');
-            delete config.provisionedDevice;
-            delete config.activated;
-            this.deviceManager.saveConfig(config);
-            console.log('Configuration cleared. Restarting to re-provision...');
-            setTimeout(() => process.exit(0), 1000);
-            return;
-          }
-          throw error;
         }
+        throw error;
+      }
       }
       
       // Check if device has provisioned info but not activated
       if (config.provisionedDevice) {
-        console.log('Found saved device but not activated');
-        console.log('\n=== Device needs activation ===');
-        console.log('Please activate with invite code using:');
-        console.log('POST http://localhost:3001/activate');
-        console.log('Body: {"inviteCode": "YOUR_INVITE_CODE"}');
-        console.log('\nOr use PowerShell:');
-        console.log('irm http://localhost:3001/activate -Method POST -ContentType "application/json" -Body \'{"inviteCode":"YOUR_INVITE_CODE"}\'');
+        console.log('[DEVICE] Found saved device but not activated');
+        console.log('[DEVICE] \n=== Device needs activation ===');
+        console.log('[DEVICE] Please activate with invite code using:');
+        console.log('[DEVICE] POST http://localhost:3001/activate');
+        console.log('[DEVICE] Body: {"inviteCode": "YOUR_INVITE_CODE"}');
+        console.log('[DEVICE] \nOr use PowerShell:');
+        console.log('[DEVICE] irm http://localhost:3001/activate -Method POST -ContentType "application/json" -Body \'{"inviteCode":"YOUR_INVITE_CODE"}\'');
         return;
       }
       
@@ -153,7 +153,7 @@ class MQTTClient {
         playerVersion: '2.0.0'
       };
 
-      console.log(`Auto-provisioning device with serial: ${serialNumber}`);
+      console.log(`[DEVICE] Auto-provisioning device with serial: ${serialNumber}`);
       await this.mqtt.publish({
         topicName: 'fwi/provision',
         payload: JSON.stringify(provisionPayload),
@@ -173,7 +173,7 @@ class MQTTClient {
       // Get authenticated Cognito session and store it
       const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
       this.cognitoSession = session; // Store for reuse
-      console.log('Got authenticated Cognito session');
+      console.log('[AUTH] Got authenticated Cognito session');
       
       // Get authenticated credentials
       const authenticatedCredentials = await this.getAuthenticatedCognitoIdentity(
@@ -208,7 +208,7 @@ class MQTTClient {
 
       this.setupMQTTHandlers();
       
-      console.log('Starting authenticated MQTT5 client...');
+      console.log('[AUTH] Starting authenticated MQTT5 client...');
       this.mqtt.start();
       
       // Wait for connection
@@ -227,7 +227,7 @@ class MQTTClient {
       // Subscribe to device topics and publish attributes
       await this.subscribeToDeviceTopics();
       
-      console.log('MQTT connected and authenticated');
+      console.log('[AUTH] MQTT connected and authenticated');
       
     } catch (error) {
       console.error('Authenticated connection failed:', error);
@@ -278,7 +278,7 @@ class MQTTClient {
       } else if (topic.includes('/broadcast') || topic.endsWith(this.provisionedDevice?.deviceId)) {
         // Handle token broadcasts
         if (data.token) {
-          console.log('Received fresh token via broadcast');
+          console.log('[TOKEN] Received fresh token via broadcast');
           this.currentToken = data.token;
         } else {
           await this.handleCommand(data);
@@ -295,10 +295,10 @@ class MQTTClient {
       
       // If auto-provision failed, prompt for invite code
       if (data.error.includes('Device could not be found') || data.error.includes('Unable to provision')) {
-        console.log('\n=== Auto-provision failed ===');
-        console.log('Please activate with invite code using:');
-        console.log('POST http://localhost:3001/activate');
-        console.log('Body: {"inviteCode": "YOUR_INVITE_CODE"}');
+        console.log('[PROVISION] Auto-provision failed');
+        console.log('[PROVISION] Please activate with invite code using:');
+        console.log('[PROVISION] POST http://localhost:3001/activate');
+        console.log('[PROVISION] Body: {"inviteCode": "YOUR_INVITE_CODE"}');
       }
       return;
     }
@@ -315,7 +315,7 @@ class MQTTClient {
     try {
       const awsSettings = await this.getAWSSettings();
       const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
-      console.log('Got authenticated Cognito session');
+      console.log('[AUTH] Got authenticated Cognito session');
       
       const authenticatedCredentials = await this.getAuthenticatedCognitoIdentity(
         session,
@@ -326,7 +326,7 @@ class MQTTClient {
       const identityId = authenticatedCredentials.identityId;
       const activationPayload = {
         env: process.env.ENVIRONMENT || 'dev',
-        inviteCode: this.currentInviteCode,
+        inviteCode: this.currentInviteCode || this.deviceManager.getSerialNumber(), // Use current invite code if available
         deviceId: this.provisionedDevice.deviceId,
         principal: identityId,
         companyId: this.provisionedDevice.companyId
@@ -336,7 +336,7 @@ class MQTTClient {
       
       await this.mqtt.subscribe({
         subscriptions: [{
-          topicFilter: `fwi/activate/${this.currentInviteCode}`,
+          topicFilter: `fwi/activate/${this.currentInviteCode || this.deviceManager.getSerialNumber()}`,
           qos: mqtt5.QoS.AtLeastOnce
         }]
       });
@@ -354,7 +354,7 @@ class MQTTClient {
 
   async handleActivationResponse(data) {
     if (data.status === 'activated') {
-      console.log('Device activated successfully');
+      console.log('[ACTIVATION] Device activated successfully');
       
       // Save activation state
       const config = this.deviceManager.loadConfig();
@@ -369,11 +369,11 @@ class MQTTClient {
         try {
           await this.connectAuthenticated();
         } catch (error) {
-          console.error('Failed to reconnect with authenticated credentials:', error);
+          console.error('[ACTIVATION] Failed to reconnect with authenticated credentials:', error);
         }
       }, 1000);
     } else {
-      console.error('Activation failed:', data);
+      console.error('[ACTIVATION] Activation failed:', data);
     }
   }
 
@@ -403,7 +403,7 @@ class MQTTClient {
       // Publish device attributes
       await this.publishDeviceAttributes();
       
-      console.log('Device fully activated and ready for commands');
+      console.log('[AUTH] Device fully activated and ready for commands');
       
     } catch (error) {
       console.error('Failed to subscribe to device topics:', error);
@@ -471,11 +471,11 @@ class MQTTClient {
   }
 
   async handleShadowDelta(data) {
-    console.log('Shadow delta received:', data);
+    console.log('[SHADOW] Shadow delta received:', data);
     
     if (data.state?.channel) {
       const { id: channelId } = data.state.channel;
-      console.log(`Channel assigned: ${channelId}`);
+      console.log(`[SHADOW] Channel assigned: ${channelId}`);
       
       // Use fresh token from broadcast if available, otherwise get from session
       try {
@@ -507,12 +507,12 @@ class MQTTClient {
         
         const result = await response.json();
         if (result.success) {
-          console.log(`Channel downloaded: ${result.name} v${result.version}`);
+          console.log(`[SHADOW] Channel downloaded: ${result.name} v${result.version}`);
         } else {
-          console.error('Channel download failed:', result.error);
+          console.error('[SHADOW] Channel download failed:', result.error);
         }
       } catch (error) {
-        console.error('Channel download failed:', error);
+        console.error('[SHADOW] Channel download failed:', error);
       }
     }
 
@@ -613,28 +613,11 @@ class MQTTClient {
   }
 
   async getAWSSettings() {
-    const environment = (process.env.ENVIRONMENT || 'dev').trim();
-    const cloudEnv = (process.env.CLOUD_ENV || 'cloudtest1').trim();
+    const Config = require('./config');
+    const config = new Config();
     
-    let apiURL = 'https://';
-    switch (environment) {
-      case 'dev':
-        apiURL += `api-${cloudEnv.toLowerCase()}.fwi-dev`;
-        break;
-      case 'staging':
-        apiURL += `api-${environment.toLowerCase()}.fwi-dev`;
-        break;
-      case 'prod-eu':
-      case 'prod-ap':
-        apiURL += `api.${environment.replace('prod-', '')}1.fwicloud`;
-        break;
-      default:
-        apiURL += 'api.fwicloud';
-        break;
-    }
-    
-    const url = `${apiURL}.com/common/v1/endpoints`;
-    console.log(`Fetching AWS settings from: ${url}`);
+    const url = `${config.getApiBase()}/common/v1/endpoints`;
+    console.log(`[AWS] Fetching AWS settings from: ${url}`);
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -654,7 +637,7 @@ class MQTTClient {
   }
 
   resetOnDeactivation() {
-    console.log('Resetting device configuration due to deactivation');
+    console.log('[DEVICE] Resetting device configuration due to deactivation');
     
     // Clear device configuration like browser version
     const config = this.deviceManager.loadConfig();
@@ -668,7 +651,7 @@ class MQTTClient {
     }
     
     // Restart the service
-    console.log('Device deactivated. Restarting service...');
+    console.log('[DEVICE] Device deactivated. Restarting service...');
     setTimeout(() => process.exit(0), 1000);
   }
 
@@ -746,7 +729,7 @@ class MQTTClient {
         });
       });
 
-      console.log('MQTT5 connected, subscribing and publishing');
+      console.log('[INVITE] MQTT5 connected, subscribing and publishing');
       
       // Subscribe to provision topic
       await this.mqtt.subscribe({
@@ -766,7 +749,7 @@ class MQTTClient {
         playerVersion: '2.0.0'
       };
 
-      console.log(`Publishing provision payload: ${JSON.stringify(provisionPayload)}`);
+      console.log(`[INVITE] Publishing provision payload: ${JSON.stringify(provisionPayload)}`);
       await this.mqtt.publish({
         topicName: 'fwi/provision',
         payload: JSON.stringify(provisionPayload),
@@ -774,7 +757,7 @@ class MQTTClient {
       });
       
     } catch (error) {
-      console.error('Invite code activation failed:', error);
+      console.error('[INVITE] Invite code activation failed:', error);
       throw error;
     }
   }

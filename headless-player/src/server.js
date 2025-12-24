@@ -43,64 +43,64 @@ class HeadlessPlayer {
       
       for (let i = 0; i < total; i++) {
         const content = channelData.contentList[i];
-        console.log(`[${i + 1}/${total}] Downloading: ${content.id}`);
-        
-        try {
-          const contentRes = await fetch(content.url, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          
-          if (!contentRes.ok) {
-            console.error(`Failed to download ${content.id}: HTTP ${contentRes.status}`);
-            continue;
-          }
-          
-          if (content.type === 'Playlist') {
-            const playlistJson = await contentRes.json();
-            const playlistPath = path.join(extractDir, `${content.id}.json`);
-            fs.writeFileSync(playlistPath, JSON.stringify(playlistJson, null, 2));
-            console.log(`Saved playlist: ${content.id}.json`);
+            console.log(`[CONTENT] [${i + 1}/${total}] Downloading: ${content.id}`);
             
-            // Download playlist items
-            const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
-            for (let j = 0; j < items.length; j++) {
-              const item = items[j];
-              const itemUrl = item.URL || item.url;
-              const urlPath = new URL(itemUrl).pathname;
-              const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
-              console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+            try {
+              const contentRes = await fetch(content.url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
               
-              try {
-                const itemRes = await fetch(itemUrl, {
-                  headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (!itemRes.ok) continue;
-                
-                const itemBuffer = await itemRes.arrayBuffer();
-                const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
-                const itemPath = path.join(extractDir, `${itemId}${ext}`);
-                fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
-                console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
-              } catch (err) {
-                console.error(`Error downloading:`, err.message);
+              if (!contentRes.ok) {
+                console.error(`[CONTENT] Failed to download ${content.id}: HTTP ${contentRes.status}`);
+                continue;
               }
+              
+              if (content.type === 'Playlist') {
+                const playlistJson = await contentRes.json();
+                const playlistPath = path.join(extractDir, `${content.id}.json`);
+                fs.writeFileSync(playlistPath, JSON.stringify(playlistJson, null, 2));
+                console.log(`[CONTENT] Saved playlist: ${content.id}.json`);
+                
+                // Download playlist items
+                const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
+                for (let j = 0; j < items.length; j++) {
+                  const item = items[j];
+                  const itemUrl = item.URL || item.url;
+                  const urlPath = new URL(itemUrl).pathname;
+                  const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+                  console.log(`[CONTENT]   [${j + 1}/${items.length}] Downloading: ${itemId}`);
+                  
+                  try {
+                    const itemRes = await fetch(itemUrl, {
+                      headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (!itemRes.ok) continue;
+                    
+                    const itemBuffer = await itemRes.arrayBuffer();
+                    const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+                    const itemPath = path.join(extractDir, `${itemId}${ext}`);
+                    fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+                    console.log(`[CONTENT]   Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+                  } catch (err) {
+                    console.error(`[CONTENT] Error downloading:`, err.message);
+                  }
+                }
+              } else if (content.type === 'App') {
+                const contentBuffer = await contentRes.arrayBuffer();
+                const contentPath = path.join(extractDir, `${content.id}.dsapp`);
+                fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+                console.log(`[CONTENT] Saved: ${content.id}.dsapp (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              } else {
+                const contentBuffer = await contentRes.arrayBuffer();
+                const ext = this.getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
+                const contentPath = path.join(extractDir, `${content.id}${ext}`);
+                fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+                console.log(`[CONTENT] Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              }
+            } catch (err) {
+              console.error(`[CONTENT] Error downloading ${content.id}:`, err.message);
             }
-          } else if (content.type === 'App') {
-            const contentBuffer = await contentRes.arrayBuffer();
-            const contentPath = path.join(extractDir, `${content.id}.dsapp`);
-            fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
-            console.log(`Saved: ${content.id}.dsapp (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
-          } else {
-            const contentBuffer = await contentRes.arrayBuffer();
-            const ext = this.getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
-            const contentPath = path.join(extractDir, `${content.id}${ext}`);
-            fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
-            console.log(`Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
-          }
-        } catch (err) {
-          console.error(`Error downloading ${content.id}:`, err.message);
-        }
       }
       return;
     }
@@ -108,32 +108,32 @@ class HeadlessPlayer {
     // Check for Deployment.xml (Content Experience Builder)
     const deploymentXmlPath = path.join(extractDir, 'Deployment.xml');
     if (fs.existsSync(deploymentXmlPath)) {
-      console.log('No channel.json found - checking for Deployment.xml (Content Experience Builder)');
+      console.log('[CONTENT] No channel.json found - checking for Deployment.xml (Content Experience Builder)');
       const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
       const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
       const contentPaths = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(p => p && (p.startsWith('http') || p.startsWith('\\\\')));
       
-      console.log(`Found ${contentPaths.length} content path(s) in Deployment.xml`);
+      console.log(`[CONTENT] Found ${contentPaths.length} content path(s) in Deployment.xml`);
       for (const contentPath of contentPaths) {
         try {
           // Handle UNC network share paths
           if (contentPath.startsWith('\\\\')) {
             const fileName = path.basename(contentPath);
             const destPath = path.join(extractDir, fileName);
-            console.log(`Copying from network share: ${fileName}`);
+            console.log(`[CONTENT] Copying from network share: ${fileName}`);
             try {
               fs.copyFileSync(contentPath, destPath);
               const stats = fs.statSync(destPath);
-              console.log(`Saved: ${fileName} (${(stats.size / 1024).toFixed(2)} KB)`);
+              console.log(`[CONTENT] Saved: ${fileName} (${(stats.size / 1024).toFixed(2)} KB)`);
             } catch (err) {
-              console.error(`Failed to copy ${fileName}:`, err.message);
+              console.error(`[CONTENT] Failed to copy ${fileName}:`, err.message);
             }
             continue;
           }
           
           // Handle HTTP/HTTPS URLs
           if (contentPath.includes('/playlist/') && contentPath.includes('/json')) {
-            console.log(`Downloading playlist: ${contentPath}`);
+            console.log(`[CONTENT] Downloading playlist: ${contentPath}`);
             const playlistRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!playlistRes.ok) continue;
             
@@ -147,7 +147,7 @@ class HeadlessPlayer {
               
               const urlPath = new URL(itemUrl).pathname;
               const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
-              console.log(`  [${j + 1}/${items.length}] Downloading: ${itemId}`);
+              console.log(`[CONTENT]   [${j + 1}/${items.length}] Downloading: ${itemId}`);
               
               const itemRes = await fetch(itemUrl, { headers: { 'Authorization': `Bearer ${token}` } });
               if (!itemRes.ok) continue;
@@ -156,14 +156,14 @@ class HeadlessPlayer {
               const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
               const itemPath = path.join(extractDir, `${itemId}${ext}`);
               fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
-              console.log(`  Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              console.log(`[CONTENT]   Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
             }
           } else {
             const urlPath = new URL(contentPath).pathname;
             const contentId = urlPath.split('/objects/')[1]?.split('/')[0];
             if (!contentId) continue;
             
-            console.log(`Downloading content: ${contentId}`);
+            console.log(`[CONTENT] Downloading content: ${contentId}`);
             const contentRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
             if (!contentRes.ok) continue;
             
@@ -171,10 +171,10 @@ class HeadlessPlayer {
             const ext = this.getFileExtension(contentPath, contentRes.headers.get('content-type'), null);
             const filePath = path.join(extractDir, `${contentId}${ext}`);
             fs.writeFileSync(filePath, Buffer.from(contentBuffer));
-            console.log(`Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+            console.log(`[CONTENT] Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
           }
         } catch (err) {
-          console.error(`Error downloading content:`, err.message);
+          console.error(`[CONTENT] Error downloading content:`, err.message);
         }
       }
     }
@@ -227,14 +227,14 @@ class HeadlessPlayer {
         // Pattern: anything.number or anything.number.zip
         if (stats.isDirectory() && file.match(/^.+\.\d+$/)) {
           fs.rmSync(fullPath, { recursive: true, force: true });
-          console.log(`Removed old channel: ${file}`);
+          console.log(`[CLEANUP] Removed old channel: ${file}`);
         } else if (file.endsWith('.zip') && file.match(/^.+\.\d+\.zip$/)) {
           fs.unlinkSync(fullPath);
-          console.log(`Deleted old channel ZIP: ${file}`);
+          console.log(`[CLEANUP] Deleted old channel ZIP: ${file}`);
         }
       });
     } catch (err) {
-      console.error('Cleanup error:', err.message);
+      console.error('[CLEANUP] Cleanup error:', err.message);
     }
   }
 
@@ -256,8 +256,10 @@ class HeadlessPlayer {
         const path = require('path');
         const AdmZip = require('adm-zip');
         
-        const downloadUrl = `https://api-cloudtest1.fwi-dev.com/channels/v1/companies/${companyId}/channels/${channelId}/download`;
-        console.log('Fetching:', downloadUrl);
+        const Config = require('./config');
+        const config = new Config();
+        const downloadUrl = `${config.getApiBase()}/channels/v1/companies/${companyId}/channels/${channelId}/download`;
+        console.log(`[CHANNEL] Fetching: ${downloadUrl}`);
         
         const response = await fetch(downloadUrl, {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -268,8 +270,8 @@ class HeadlessPlayer {
         }
         
         const downloadInfo = await response.json();
-        console.log(`Downloading channel v${downloadInfo.version}`);
-        console.log(`Channel URL: ${downloadInfo.channelUrl}`);
+        console.log(`[CHANNEL] Downloading channel v${downloadInfo.version}`);
+        console.log(`[CHANNEL] Channel URL: ${downloadInfo.channelUrl}`);
         
         // Download the actual ZIP file
         const contentResponse = await fetch(downloadInfo.channelUrl);
@@ -288,13 +290,13 @@ class HeadlessPlayer {
         }
         
         fs.writeFileSync(filepath, Buffer.from(buffer));
-        console.log(`Downloaded: ${filename} (${(buffer.byteLength / 1024).toFixed(2)} KB)`);
+        console.log(`[CHANNEL] Downloaded: ${filename} (${(buffer.byteLength / 1024).toFixed(2)} KB)`);
         
         // Extract ZIP
         const extractDir = path.join(contentDir, `${channelId}.${downloadInfo.version}`);
         const zip = new AdmZip(filepath);
         zip.extractAllTo(extractDir, true);
-        console.log(`Extracted to: ${extractDir}`);
+        console.log(`[CHANNEL] Extracted to: ${extractDir}`);
         
         // Download content files
         await this.downloadChannelContent(extractDir, token);
@@ -313,7 +315,8 @@ class HeadlessPlayer {
         
         const trackerPath = path.join(contentDir, 'current-channel.json');
         fs.writeFileSync(trackerPath, JSON.stringify(currentChannelInfo, null, 2));
-        console.log(`Updated current channel tracker: ${trackerPath}`);
+        console.log(`[CHANNEL] Updated current channel tracker: ${trackerPath}`);
+        console.log(`[CHANNEL] Channel downloaded: ${downloadInfo.channelName} v${downloadInfo.version}`);
         
         res.json({ 
           success: true, 
@@ -322,7 +325,7 @@ class HeadlessPlayer {
           path: extractDir
         });
       } catch (error) {
-        console.error('Channel download failed:', error);
+        console.error('[CHANNEL] Download failed:', error);
         res.status(500).json({ success: false, error: error.message });
       }
     });
@@ -405,9 +408,9 @@ class HeadlessPlayer {
       // Start HTTP server first
       const port = process.env.PORT || 3001;
       this.app.listen(port, () => {
-        console.log(`Headless player HTTP server running on port ${port}`);
-        console.log(`Content directory: ${this.channelManager.getContentDir()}`);
-        console.log(`System info available at: http://localhost:${port}/system/info`);
+      console.log(`[HTTP] Headless player HTTP server running on port ${port}`);
+        console.log(`[HTTP] Content directory: ${this.channelManager.getContentDir()}`);
+        console.log(`[HTTP] System info available at: http://localhost:${port}/system/info`);
       });
       
       // Try MQTT connection (non-blocking)

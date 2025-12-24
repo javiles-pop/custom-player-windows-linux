@@ -18,13 +18,13 @@ The system uses **AWS IoT Core** as the MQTT broker with **AWS Cognito** for aut
 ```json
 {
   "amazon-cognito-identity-js": "^4",
-  "aws-iot-device-sdk-browser": "^2.3.0",
+  "aws-iot-device-sdk-v2": "^1.21.2",
   "aws-sdk": "^2.656.0"
 }
 ```
 
 **Key Libraries:**
-- `aws-iot-device-sdk-browser` - Browser-compatible AWS IoT Device SDK for MQTT connections
+- `aws-iot-device-sdk-v2` - AWS IoT Device SDK v2 with MQTT5 client support
 - `amazon-cognito-identity-js` - AWS Cognito authentication for user pool management
 - `aws-sdk` - AWS SDK for Cognito Identity Pool and credential management
 
@@ -32,12 +32,15 @@ The system uses **AWS IoT Core** as the MQTT broker with **AWS Cognito** for aut
 
 **Critical Implementation Details:**
 
-1. **Use Browser-Specific SDK**: Must use `aws-iot-device-sdk-browser` NOT `aws-iot-device-sdk` (Node.js version)
+1. **Use Correct SDK Version**: Browser uses `aws-iot-device-sdk-browser`, headless uses `aws-iot-device-sdk-v2`
    ```javascript
-   // ✅ CORRECT - Browser version
+   // ✅ BROWSER - Browser version
    import { device } from 'aws-iot-device-sdk-browser';
    
-   // ❌ WRONG - Node.js version (will fail in browser)
+   // ✅ HEADLESS - Node.js v2 version
+   const { mqtt5, iot, auth } = require('aws-iot-device-sdk-v2');
+   
+   // ❌ WRONG - Node.js v1 version (incompatible with headless)
    import { device } from 'aws-iot-device-sdk';
    ```
 

@@ -39,7 +39,7 @@ sudo journalctl -u poppulo-player -f
 ```
 
 3. **Auto-start configuration:**
-The service is automatically enabled to start on boot. Content is stored at `/home/fwiplayer/Poppulo/Content`.
+The service is automatically enabled to start on boot. Content is stored at `~/Poppulo/Content`.
 
 ### Windows (Windows Service)
 
@@ -211,11 +211,28 @@ Body: {"inviteCode": "YOUR_INVITE_CODE"}
 ```
 
 ### Troubleshooting Activation
-1. Check serial number detection: `GET /system/info`
-2. Verify environment variables match company type
-3. Ensure device not already registered in cloud
-4. For development, use CloudTest1 company accounts
-5. For production, use production company accounts
+1. **Check serial number detection**: `GET /system/info`
+2. **Verify environment variables** match company type
+3. **Clear stale configuration**: `POST /reset` then restart service
+4. **For development**: Use CloudTest1 company accounts
+5. **For production**: Use production company accounts
+6. **Check logs**: Look for `[DEVICE]`, `[PROVISION]`, `[ACTIVATION]` prefixes
+
+### Log Categories
+Logs are prefixed for easy troubleshooting:
+- `[HTTP]` - HTTP server messages
+- `[CHANNEL]` - Channel download process  
+- `[CONTENT]` - Content file downloads
+- `[CLEANUP]` - Channel cleanup operations
+- `[MQTT]` - MQTT connection events
+- `[DEVICE]` - Device management
+- `[AUTH]` - Authentication process
+- `[PROVISION]` - Device provisioning
+- `[ACTIVATION]` - Device activation
+- `[SHADOW]` - Shadow delta handling
+- `[TOKEN]` - Token management
+- `[AWS]` - AWS API calls
+- `[INVITE]` - Invite code activation
 
 ## Supported Content Types
 
@@ -287,6 +304,8 @@ src/
 - ✅ **Token Management** - Handles fresh API tokens from broadcast messages
 - ✅ **Device Deletion Recovery** - Automatic config reset when device deleted from cloud
 - ✅ **Persistent Connection** - Maintains MQTT connection across service restarts
+- ✅ **Clear Logging** - Categorized log messages with prefixes for easy troubleshooting
+- ✅ **Production Services** - Auto-start on boot support for Linux (systemd) and Windows (Windows Service)
 
 ### Content Download System
 - **Simple/Daily Channels**: Downloads content from `channel.json`

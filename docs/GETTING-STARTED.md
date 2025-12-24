@@ -1,5 +1,7 @@
 # Getting Started (Development)
 
+> **🚀 TL;DR:** `yarn` → set env vars → `cd device_browser && yarn server` → `yarn dev:simplified`
+
 Quick start guide for developers working on the Custom Player for Windows/Linux.
 
 **Note:** For end-user installation instructions, see:
@@ -61,6 +63,27 @@ export BUILD_NUMBER=1
 - **Development:** Use a CloudTest1 company account (`https://cloudtest1.fwi-dev.com`)
 - **Production:** Use a production company account (`https://app.fwicloud.com`)
 
+## Quick Start Options
+
+### Browser Player (GUI)
+For desktop environments with display:
+
+```bash
+cd device_browser
+yarn server    # Terminal 1
+yarn dev:simplified  # Terminal 2
+```
+
+### Headless Player (Service)
+For servers without GUI:
+
+```bash
+cd headless-player
+npm start
+```
+
+See [headless-player/README.md](../headless-player/README.md) for headless service details.
+
 ## Running the Application
 
 ### 1. Start the Node Server
@@ -110,7 +133,7 @@ C:\Users\Public\Documents\Four Winds Interactive\Content\{channelId}.{version}\
 
 **Linux:**
 ```
-/var/lib/fwi/content/{channelId}.{version}/
+~/Poppulo/Content/{channelId}.{version}/
 ```
 
 ## Building for Production
