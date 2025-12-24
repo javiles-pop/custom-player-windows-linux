@@ -1,0 +1,18 @@
+[Unit]
+Description=Poppulo Headless Player
+After=network.target
+
+[Service]
+Type=simple
+User=fwiplayer
+WorkingDirectory=/opt/poppulo-player
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=ENVIRONMENT=prod
+Environment=VERSION=2.0.0
+Environment=BUILD_NUMBER=1
+
+[Install]
+WantedBy=multi-user.target

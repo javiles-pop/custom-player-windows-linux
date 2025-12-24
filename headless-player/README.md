@@ -14,6 +14,85 @@ Cross-platform headless player service for Windows and Linux that provides devic
 - ✅ **Persistent Connection** - Automatic reconnection after reboots
 - ❌ **Content Rendering** - Use separate rendering service
 
+## Production Deployment
+
+### Linux (systemd)
+
+1. **Install as system service:**
+```bash
+sudo ./install.sh
+```
+
+2. **Service management:**
+```bash
+# Start service
+sudo systemctl start poppulo-player
+
+# Stop service  
+sudo systemctl stop poppulo-player
+
+# Check status
+sudo systemctl status poppulo-player
+
+# View logs
+sudo journalctl -u poppulo-player -f
+```
+
+3. **Auto-start configuration:**
+The service is automatically enabled to start on boot. Content is stored at `/home/fwiplayer/Poppulo/Content`.
+
+### Windows (Windows Service)
+
+1. **Install dependencies:**
+```cmd
+npm install
+```
+
+2. **Install as Windows service:**
+```cmd
+cd windows
+install.bat
+```
+
+3. **Service management:**
+```cmd
+# Start service
+net start "Poppulo Headless Player"
+
+# Stop service
+net stop "Poppulo Headless Player"
+
+# View in Services Manager
+services.msc
+```
+
+4. **Auto-start configuration:**
+The service automatically starts on system boot. Content is stored at `C:\Users\Public\Documents\Four Winds Interactive\Content`.
+
+### Environment Variables (Production)
+
+Both service configurations set:
+- `NODE_ENV=production`
+- `ENVIRONMENT=prod` (or `prod-eu`, `prod-ap`)
+- `VERSION=2.0.0`
+- `BUILD_NUMBER=1`
+
+### Uninstall Services
+
+**Linux:**
+```bash
+sudo systemctl stop poppulo-player
+sudo systemctl disable poppulo-player
+sudo rm /etc/systemd/system/poppulo-player.service
+sudo systemctl daemon-reload
+```
+
+**Windows:**
+```cmd
+cd windows
+node uninstall-service.js
+```
+
 ## Quick Start
 
 ### 1. Install Dependencies
