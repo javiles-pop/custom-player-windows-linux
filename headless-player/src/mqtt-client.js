@@ -280,6 +280,10 @@ class MQTTClient {
         if (data.token) {
           console.log('[TOKEN] Received fresh token via broadcast');
           this.currentToken = data.token;
+        } else if (data.channel) {
+          // Handle channel broadcast updates
+          console.log(`[BROADCAST] Channel update received: ${data.channel} v${data.version}`);
+          await this.handleChannelBroadcast(data);
         } else {
           await this.handleCommand(data);
         }
@@ -518,6 +522,47 @@ class MQTTClient {
 
     // Report updated shadow
     this.reportShadow(data.state);
+  }
+
+  async handleChannelBroadcast(data) {
+    console.log('[BROADCAST] Processing channel update:', data);
+    
+    try {
+      let token;
+      if (this.currentToken) {
+        token = this.currentToken;
+      } else {
+        if (!this.cognitoSession) {
+          const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
+          this.cognitoSession = session;
+        }
+        token = this.cognitoSession.getAccessToken().getJwtToken();
+      }
+      
+      // Make HTTP call to local server
+      const response = await fetch('http://localhost:3001/channel/download', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          channelId: data.channel,
+          companyId: this.provisionedDevice.companyId,
+          token: token
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const result = await response.json();
+      if (result.success) {
+        console.log(`[BROADCAST] Channel downloaded: ${result.name} v${result.version}`);
+      } else {
+        console.error('[BROADCAST] Channel download failed:', result.error);
+      }
+    } catch (error) {
+      console.error('[BROADCAST] Channel download failed:', error);
+    }
   }
 
   async handleCommand(data) {

@@ -374,7 +374,12 @@ Proprietary - Poppulo/Four Winds Interactive
 
 ## Recent Updates
 
-### Production EU1 Support & Cross-Platform Testing (Latest)
+### Broadcast Channel Updates (Latest)
+- ✅ **Real-time Content Updates** - Headless player listens to broadcast messages for channel content changes
+- ✅ **Automatic Re-download** - Downloads updated channel content when changes are published
+- ✅ **Dual Trigger Support** - Handles both shadow deltas (initial assignment) and broadcasts (updates)
+
+### Production EU1 Support & Cross-Platform Testing
 - ✅ **EU1 Production Ready** - Both implementations tested and working with `prod-eu` environment
 - ✅ **Environment-Based API URLs** - Automatic API endpoint selection based on environment variables
 - ✅ **Cross-Platform Verified** - Windows and Linux deployments tested with EU1 production

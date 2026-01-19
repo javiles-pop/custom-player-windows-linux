@@ -297,7 +297,12 @@ src/
 
 ## Recent Updates
 
-### Complete MQTT Integration (Latest)
+### Broadcast Channel Updates (Latest)
+- ✅ **Real-time Content Updates** - Listens to broadcast messages for channel content changes
+- ✅ **Automatic Re-download** - Downloads updated channel content when changes are published
+- ✅ **Dual Trigger Support** - Handles both shadow deltas (initial assignment) and broadcasts (updates)
+
+### Complete MQTT Integration
 - ✅ **Full MQTT Activation Flow** - Both auto-activation (serial) and manual activation (invite code)
 - ✅ **AWS IoT Core Integration** - Migrated to aws-iot-device-sdk-v2 with MQTT5 client
 - ✅ **Automatic Channel Downloads** - Triggered by MQTT shadow updates from cloud
