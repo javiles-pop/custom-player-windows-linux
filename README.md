@@ -365,7 +365,8 @@ Proprietary - Poppulo/Four Winds Interactive
 - **Video**: .mp4, .webm, .mov
 - **Image**: .jpg, .png, .svg, .gif, .webp
 - **Audio**: .mp3
-- **Documents**: .pdf, .ppt, .pptx
+- **Documents**: .pdf, .ppt, .pptx, .doc, .docx
+- **Spreadsheets**: .xls, .xlsx, .csv
 - **Web**: .html
 - **Fonts**: .ttf, .otf
 - **Data**: .json, .xml
@@ -374,7 +375,13 @@ Proprietary - Poppulo/Four Winds Interactive
 
 ## Recent Updates
 
-### Broadcast Channel Updates (Latest)
+### Headless Player Bug Fixes (Latest)
+- ✅ **Token Refresh on Channel Download** - Always fetches a fresh Cognito token before downloading channels, fixing HTTP 401 errors on broadcast-triggered downloads
+- ✅ **Broadcast Channel Filter** - Player now ignores broadcast updates for channels not assigned to the device, preventing unintended channel switches
+- ✅ **CXB Content Type Detection** - Fixed Deployment.xml parsing to extract `p3:type` attribute alongside URL, enabling correct file extensions for .csv, .docx, .pdf, .html, etc.
+- ✅ **Extended MIME Type Support** - Added .doc, .docx, .xls, .xlsx, .csv to MIME type map
+
+### Broadcast Channel Updates
 - ✅ **Real-time Content Updates** - Headless player listens to broadcast messages for channel content changes
 - ✅ **Automatic Re-download** - Downloads updated channel content when changes are published
 - ✅ **Dual Trigger Support** - Handles both shadow deltas (initial assignment) and broadcasts (updates)

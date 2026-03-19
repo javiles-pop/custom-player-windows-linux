@@ -14,6 +14,7 @@ class MQTTClient {
     this.provisionedDevice = null;
     this.cognitoSession = null; // Store session for reuse
     this.currentToken = null; // Store fresh token from broadcast
+    this.assignedChannelId = null; // Track the channel assigned to this device
   }
 
   async connect() {
@@ -474,25 +475,22 @@ class MQTTClient {
     });
   }
 
+  async getFreshToken() {
+    const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
+    this.cognitoSession = session;
+    return session.getAccessToken().getJwtToken();
+  }
+
   async handleShadowDelta(data) {
     console.log('[SHADOW] Shadow delta received:', data);
     
     if (data.state?.channel) {
       const { id: channelId } = data.state.channel;
       console.log(`[SHADOW] Channel assigned: ${channelId}`);
+      this.assignedChannelId = channelId;
       
-      // Use fresh token from broadcast if available, otherwise get from session
       try {
-        let token;
-        if (this.currentToken) {
-          token = this.currentToken;
-        } else {
-          if (!this.cognitoSession) {
-            const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
-            this.cognitoSession = session;
-          }
-          token = this.cognitoSession.getAccessToken().getJwtToken();
-        }
+        const token = await this.getFreshToken();
         
         // Make HTTP call to local server like browser version
         const response = await fetch('http://localhost:3001/channel/download', {
@@ -525,19 +523,15 @@ class MQTTClient {
   }
 
   async handleChannelBroadcast(data) {
+    if (this.assignedChannelId && data.channel !== this.assignedChannelId) {
+      console.log(`[BROADCAST] Ignoring channel ${data.channel} - device is assigned to ${this.assignedChannelId}`);
+      return;
+    }
+
     console.log('[BROADCAST] Processing channel update:', data);
     
     try {
-      let token;
-      if (this.currentToken) {
-        token = this.currentToken;
-      } else {
-        if (!this.cognitoSession) {
-          const [user, session] = await this.getAuthenticatedCognitoSession(this.provisionedDevice);
-          this.cognitoSession = session;
-        }
-        token = this.cognitoSession.getAccessToken().getJwtToken();
-      }
+      const token = await this.getFreshToken();
       
       // Make HTTP call to local server
       const response = await fetch('http://localhost:3001/channel/download', {

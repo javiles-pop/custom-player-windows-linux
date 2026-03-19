@@ -43,64 +43,63 @@ class HeadlessPlayer {
       
       for (let i = 0; i < total; i++) {
         const content = channelData.contentList[i];
-            console.log(`[CONTENT] [${i + 1}/${total}] Downloading: ${content.id}`);
+        console.log(`[CONTENT] [${i + 1}/${total}] Downloading: ${content.id}`);
+        
+        try {
+          const contentRes = await fetch(content.url, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (!contentRes.ok) {
+            console.error(`[CONTENT] Failed to download ${content.id}: HTTP ${contentRes.status}`);
+            continue;
+          }
+          
+          if (content.type === 'Playlist') {
+            const playlistJson = await contentRes.json();
+            const playlistPath = path.join(extractDir, `${content.id}.json`);
+            fs.writeFileSync(playlistPath, JSON.stringify(playlistJson, null, 2));
+            console.log(`[CONTENT] Saved playlist: ${content.id}.json`);
             
-            try {
-              const contentRes = await fetch(content.url, {
-                headers: { 'Authorization': `Bearer ${token}` }
-              });
+            const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
+            for (let j = 0; j < items.length; j++) {
+              const item = items[j];
+              const itemUrl = item.URL || item.url;
+              const urlPath = new URL(itemUrl).pathname;
+              const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
+              console.log(`[CONTENT]   [${j + 1}/${items.length}] Downloading: ${itemId}`);
               
-              if (!contentRes.ok) {
-                console.error(`[CONTENT] Failed to download ${content.id}: HTTP ${contentRes.status}`);
-                continue;
-              }
-              
-              if (content.type === 'Playlist') {
-                const playlistJson = await contentRes.json();
-                const playlistPath = path.join(extractDir, `${content.id}.json`);
-                fs.writeFileSync(playlistPath, JSON.stringify(playlistJson, null, 2));
-                console.log(`[CONTENT] Saved playlist: ${content.id}.json`);
+              try {
+                const itemRes = await fetch(itemUrl, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                });
                 
-                // Download playlist items
-                const items = Array.isArray(playlistJson) ? playlistJson : (playlistJson.items || []);
-                for (let j = 0; j < items.length; j++) {
-                  const item = items[j];
-                  const itemUrl = item.URL || item.url;
-                  const urlPath = new URL(itemUrl).pathname;
-                  const itemId = urlPath.split('/objects/')[1]?.split('/')[0] || `item-${j}`;
-                  console.log(`[CONTENT]   [${j + 1}/${items.length}] Downloading: ${itemId}`);
-                  
-                  try {
-                    const itemRes = await fetch(itemUrl, {
-                      headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    if (!itemRes.ok) continue;
-                    
-                    const itemBuffer = await itemRes.arrayBuffer();
-                    const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
-                    const itemPath = path.join(extractDir, `${itemId}${ext}`);
-                    fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
-                    console.log(`[CONTENT]   Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
-                  } catch (err) {
-                    console.error(`[CONTENT] Error downloading:`, err.message);
-                  }
-                }
-              } else if (content.type === 'App') {
-                const contentBuffer = await contentRes.arrayBuffer();
-                const contentPath = path.join(extractDir, `${content.id}.dsapp`);
-                fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
-                console.log(`[CONTENT] Saved: ${content.id}.dsapp (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
-              } else {
-                const contentBuffer = await contentRes.arrayBuffer();
-                const ext = this.getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
-                const contentPath = path.join(extractDir, `${content.id}${ext}`);
-                fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
-                console.log(`[CONTENT] Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+                if (!itemRes.ok) continue;
+                
+                const itemBuffer = await itemRes.arrayBuffer();
+                const ext = this.getFileExtension(itemUrl, itemRes.headers.get('content-type'), item.MimeType || item.type);
+                const itemPath = path.join(extractDir, `${itemId}${ext}`);
+                fs.writeFileSync(itemPath, Buffer.from(itemBuffer));
+                console.log(`[CONTENT]   Saved: ${itemId}${ext} (${(itemBuffer.byteLength / 1024).toFixed(2)} KB)`);
+              } catch (err) {
+                console.error(`[CONTENT] Error downloading:`, err.message);
               }
-            } catch (err) {
-              console.error(`[CONTENT] Error downloading ${content.id}:`, err.message);
             }
+          } else if (content.type === 'App') {
+            const contentBuffer = await contentRes.arrayBuffer();
+            const contentPath = path.join(extractDir, `${content.id}.dsapp`);
+            fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+            console.log(`[CONTENT] Saved: ${content.id}.dsapp (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+          } else {
+            const contentBuffer = await contentRes.arrayBuffer();
+            const ext = this.getFileExtension(content.url, contentRes.headers.get('content-type'), content.type);
+            const contentPath = path.join(extractDir, `${content.id}${ext}`);
+            fs.writeFileSync(contentPath, Buffer.from(contentBuffer));
+            console.log(`[CONTENT] Saved: ${content.id}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+          }
+        } catch (err) {
+          console.error(`[CONTENT] Error downloading ${content.id}:`, err.message);
+        }
       }
       return;
     }
@@ -110,13 +109,24 @@ class HeadlessPlayer {
     if (fs.existsSync(deploymentXmlPath)) {
       console.log('[CONTENT] No channel.json found - checking for Deployment.xml (Content Experience Builder)');
       const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
-      const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
-      const contentPaths = pathMatches.map(m => m.replace(/<\/?Path>/g, '')).filter(p => p && (p.startsWith('http') || p.startsWith('\\\\')));
-      
-      console.log(`[CONTENT] Found ${contentPaths.length} content path(s) in Deployment.xml`);
-      for (const contentPath of contentPaths) {
+
+      // Parse AvailableContent blocks to extract URL + CXB content type together
+      const contentItems = [];
+      const contentBlockRegex = /<Content p3:type="([^"]+)"[^>]*>([\s\S]*?)<\/Content>/g;
+      let blockMatch;
+      while ((blockMatch = contentBlockRegex.exec(xml)) !== null) {
+        const cxbType = blockMatch[1];
+        const block = blockMatch[2];
+        const pathMatch = block.match(/<Path>([^<]+)<\/Path>/);
+        if (pathMatch && (pathMatch[1].startsWith('http') || pathMatch[1].startsWith('\\\\'))) {
+          contentItems.push({ url: pathMatch[1], cxbType });
+        }
+      }
+
+      console.log(`[CONTENT] Found ${contentItems.length} content path(s) in Deployment.xml`);
+
+      for (const { url: contentPath, cxbType } of contentItems) {
         try {
-          // Handle UNC network share paths
           if (contentPath.startsWith('\\\\')) {
             const fileName = path.basename(contentPath);
             const destPath = path.join(extractDir, fileName);
@@ -130,8 +140,7 @@ class HeadlessPlayer {
             }
             continue;
           }
-          
-          // Handle HTTP/HTTPS URLs
+
           if (contentPath.includes('/playlist/') && contentPath.includes('/json')) {
             console.log(`[CONTENT] Downloading playlist: ${contentPath}`);
             const playlistRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
@@ -168,7 +177,7 @@ class HeadlessPlayer {
             if (!contentRes.ok) continue;
             
             const contentBuffer = await contentRes.arrayBuffer();
-            const ext = this.getFileExtension(contentPath, contentRes.headers.get('content-type'), null);
+            const ext = this.getFileExtension(contentPath, contentRes.headers.get('content-type'), cxbType);
             const filePath = path.join(extractDir, `${contentId}${ext}`);
             fs.writeFileSync(filePath, Buffer.from(contentBuffer));
             console.log(`[CONTENT] Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
@@ -191,7 +200,10 @@ class HeadlessPlayer {
       'audio/mpeg': '.mp3', 'audio/mp3': '.mp3',
       'application/pdf': '.pdf',
       'application/vnd.ms-powerpoint': '.ppt', 'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-      'application/x-dsapp': '.dsapp', 'application/octet-stream': '.dsapp',
+      'application/msword': '.doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+      'application/vnd.ms-excel': '.xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'text/csv': '.csv', 'application/csv': '.csv',
+      'application/x-dsapp': '.dsapp',
       'text/html': '.html', 'application/xhtml+xml': '.html',
       'font/ttf': '.ttf', 'application/x-font-ttf': '.ttf', 'font/opentype': '.otf', 'application/x-font-opentype': '.otf',
       'application/json': '.json', 'text/json': '.json', 'application/xml': '.xml', 'text/xml': '.xml'
@@ -200,12 +212,25 @@ class HeadlessPlayer {
     if (contentType && typeMap[contentType.split(';')[0].trim()]) {
       return typeMap[contentType.split(';')[0].trim()];
     }
-    
+
+    // CXB content type fallbacks from Deployment.xml p3:type attribute
+    const cxbTypeMap = {
+      'ExcelContent': '.csv',
+      'DocumentContent': '.docx',
+      'PdfContent': '.pdf',
+      'HtmlContent': '.html',
+      'VideoContent': '.mp4',
+      'ImageContent': '.jpg',
+      'AudioContent': '.mp3',
+    };
+    if (fallbackType && cxbTypeMap[fallbackType]) return cxbTypeMap[fallbackType];
+
+    // Simple channel fallbacks
     if (fallbackType === 'Image') return '.jpg';
     if (fallbackType === 'Video') return '.mp4';
     if (fallbackType === 'App') return '.dsapp';
     
-    return '.mp4';
+    return '.bin';
   }
 
   cleanupOldVersions(contentDir, channelId, currentVersion) {
@@ -216,15 +241,11 @@ class HeadlessPlayer {
       const currentChannelPrefix = `${channelId}.${currentVersion}`;
       
       files.forEach(file => {
-        // Skip if it's the current channel
         if (file.startsWith(currentChannelPrefix)) return;
         
-        // Remove any other channel directories or ZIPs
         const fullPath = path.join(contentDir, file);
         const stats = fs.statSync(fullPath);
         
-        // Match both UUID channels (cloud) and name channels (standard)
-        // Pattern: anything.number or anything.number.zip
         if (stats.isDirectory() && file.match(/^.+\.\d+$/)) {
           fs.rmSync(fullPath, { recursive: true, force: true });
           console.log(`[CLEANUP] Removed old channel: ${file}`);
@@ -273,7 +294,6 @@ class HeadlessPlayer {
         console.log(`[CHANNEL] Downloading channel v${downloadInfo.version}`);
         console.log(`[CHANNEL] Channel URL: ${downloadInfo.channelUrl}`);
         
-        // Download the actual ZIP file
         const contentResponse = await fetch(downloadInfo.channelUrl);
         if (!contentResponse.ok) {
           throw new Error(`Failed to download ZIP: HTTP ${contentResponse.status}`);
@@ -284,7 +304,6 @@ class HeadlessPlayer {
         const contentDir = this.channelManager.getContentDir();
         const filepath = path.join(contentDir, filename);
         
-        // Ensure content directory exists
         if (!fs.existsSync(contentDir)) {
           fs.mkdirSync(contentDir, { recursive: true });
         }
@@ -292,19 +311,15 @@ class HeadlessPlayer {
         fs.writeFileSync(filepath, Buffer.from(buffer));
         console.log(`[CHANNEL] Downloaded: ${filename} (${(buffer.byteLength / 1024).toFixed(2)} KB)`);
         
-        // Extract ZIP
         const extractDir = path.join(contentDir, `${channelId}.${downloadInfo.version}`);
         const zip = new AdmZip(filepath);
         zip.extractAllTo(extractDir, true);
         console.log(`[CHANNEL] Extracted to: ${extractDir}`);
         
-        // Download content files
         await this.downloadChannelContent(extractDir, token);
         
-        // Cleanup old channels
         this.cleanupOldVersions(contentDir, channelId, downloadInfo.version);
         
-        // Create current channel tracker
         const currentChannelInfo = {
           channelId: channelId,
           version: downloadInfo.version,
@@ -359,7 +374,6 @@ class HeadlessPlayer {
 
     this.app.post('/reset', (req, res) => {
       try {
-        // Clear saved device config
         const config = this.deviceManager.loadConfig();
         delete config.provisionedDevice;
         this.deviceManager.saveConfig(config);
@@ -378,7 +392,6 @@ class HeadlessPlayer {
       });
     });
 
-    // Network stub endpoints (browser player compatibility)
     this.app.get('/network/config', (req, res) => {
       res.json({ 
         success: true, 
@@ -402,18 +415,15 @@ class HeadlessPlayer {
 
   async start() {
     try {
-      // Initialize device
       await this.deviceManager.initialize();
       
-      // Start HTTP server first
       const port = process.env.PORT || 3001;
       this.app.listen(port, () => {
-      console.log(`[HTTP] Headless player HTTP server running on port ${port}`);
+        console.log(`[HTTP] Headless player HTTP server running on port ${port}`);
         console.log(`[HTTP] Content directory: ${this.channelManager.getContentDir()}`);
         console.log(`[HTTP] System info available at: http://localhost:${port}/system/info`);
       });
       
-      // Try MQTT connection (non-blocking)
       try {
         this.mqttClient = new MQTTClient(this.deviceManager, this.channelManager);
         await this.mqttClient.connect();
@@ -429,7 +439,6 @@ class HeadlessPlayer {
   }
 }
 
-// Start the player
 if (require.main === module) {
   const player = new HeadlessPlayer();
   player.start();

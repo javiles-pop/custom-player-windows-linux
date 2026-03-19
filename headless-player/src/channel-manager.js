@@ -132,16 +132,25 @@ class ChannelManager {
 
   async processCXBChannel(extractDir, deploymentXmlPath, token) {
     const xml = fs.readFileSync(deploymentXmlPath, 'utf8');
-    const pathMatches = xml.match(/<Path>([^<]+)<\/Path>/g) || [];
-    const contentPaths = pathMatches
-      .map(m => m.replace(/<\/?Path>/g, ''))
-      .filter(p => p && (p.startsWith('http') || p.startsWith('\\\\')));
-    
-    console.log(`Found ${contentPaths.length} content path(s) in Deployment.xml`);
-    
-    for (const contentPath of contentPaths) {
+
+    // Parse AvailableContent blocks to extract URL + CXB content type together
+    const contentItems = [];
+    const contentBlockRegex = /<Content p3:type="([^"]+)"[^>]*>([\s\S]*?)<\/Content>/g;
+    let match;
+    while ((match = contentBlockRegex.exec(xml)) !== null) {
+      const cxbType = match[1]; // e.g. ExcelContent, DocumentContent, PdfContent
+      const block = match[2];
+      const pathMatch = block.match(/<Path>([^<]+)<\/Path>/);
+      if (pathMatch && (pathMatch[1].startsWith('http') || pathMatch[1].startsWith('\\\\'))) {
+        contentItems.push({ url: pathMatch[1], cxbType });
+      }
+    }
+
+    console.log(`[CONTENT] Found ${contentItems.length} content path(s) in Deployment.xml`);
+
+    for (const item of contentItems) {
       try {
-        await this.downloadContentPath(contentPath, extractDir, token);
+        await this.downloadContentPath(item.url, extractDir, token, item.cxbType);
       } catch (error) {
         console.error(`Failed to download content:`, error.message);
       }
@@ -178,7 +187,7 @@ class ChannelManager {
     }
   }
 
-  async downloadContentPath(contentPath, extractDir, token) {
+  async downloadContentPath(contentPath, extractDir, token, cxbType) {
     // Handle UNC network paths
     if (contentPath.startsWith('\\\\')) {
       const fileName = path.basename(contentPath);
@@ -192,7 +201,7 @@ class ChannelManager {
     if (contentPath.includes('/playlist/') && contentPath.includes('/json')) {
       await this.downloadPlaylistUrl(contentPath, extractDir, token);
     } else {
-      await this.downloadDirectContent(contentPath, extractDir, token);
+      await this.downloadDirectContent(contentPath, extractDir, token, cxbType);
     }
   }
 
@@ -242,20 +251,20 @@ class ChannelManager {
     }
   }
 
-  async downloadDirectContent(contentPath, extractDir, token) {
+  async downloadDirectContent(contentPath, extractDir, token, cxbType) {
     const urlPath = new URL(contentPath).pathname;
     const contentId = urlPath.split('/objects/')[1]?.split('/')[0];
     if (!contentId) return;
     
-    console.log(`Downloading content: ${contentId}`);
+    console.log(`[CONTENT] Downloading content: ${contentId}`);
     const contentRes = await fetch(contentPath, { headers: { 'Authorization': `Bearer ${token}` } });
     if (!contentRes.ok) return;
     
     const contentBuffer = await contentRes.arrayBuffer();
-    const ext = this.getFileExtension(contentPath, contentRes.headers.get('content-type'), null);
+    const ext = this.getFileExtension(contentPath, contentRes.headers.get('content-type'), cxbType);
     const filePath = path.join(extractDir, `${contentId}${ext}`);
     fs.writeFileSync(filePath, Buffer.from(contentBuffer));
-    console.log(`Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
+    console.log(`[CONTENT] Saved: ${contentId}${ext} (${(contentBuffer.byteLength / 1024).toFixed(2)} KB)`);
   }
 
   getFileExtension(url, contentType, fallbackType) {
@@ -268,7 +277,10 @@ class ChannelManager {
       'audio/mpeg': '.mp3', 'audio/mp3': '.mp3',
       'application/pdf': '.pdf',
       'application/vnd.ms-powerpoint': '.ppt', 'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-      'application/x-dsapp': '.dsapp', 'application/octet-stream': '.dsapp',
+      'application/msword': '.doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+      'application/vnd.ms-excel': '.xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+      'text/csv': '.csv', 'application/csv': '.csv',
+      'application/x-dsapp': '.dsapp',
       'text/html': '.html', 'application/xhtml+xml': '.html',
       'font/ttf': '.ttf', 'application/x-font-ttf': '.ttf', 'font/opentype': '.otf', 'application/x-font-opentype': '.otf',
       'application/json': '.json', 'text/json': '.json', 'application/xml': '.xml', 'text/xml': '.xml'
@@ -277,12 +289,25 @@ class ChannelManager {
     if (contentType && typeMap[contentType.split(';')[0].trim()]) {
       return typeMap[contentType.split(';')[0].trim()];
     }
-    
+
+    // CXB content type fallbacks from Deployment.xml p3:type attribute
+    const cxbTypeMap = {
+      'ExcelContent': '.csv',
+      'DocumentContent': '.docx',
+      'PdfContent': '.pdf',
+      'HtmlContent': '.html',
+      'VideoContent': '.mp4',
+      'ImageContent': '.jpg',
+      'AudioContent': '.mp3',
+    };
+    if (fallbackType && cxbTypeMap[fallbackType]) return cxbTypeMap[fallbackType];
+
+    // Simple channel fallbacks
     if (fallbackType === 'Image') return '.jpg';
     if (fallbackType === 'Video') return '.mp4';
     if (fallbackType === 'App') return '.dsapp';
     
-    return '.mp4';
+    return '.bin';
   }
 
   cleanupOldVersions(channelId, currentVersion) {
@@ -298,10 +323,10 @@ class ChannelManager {
         
         if (stats.isDirectory() && file.match(/^.+\.\d+$/)) {
           fs.rmSync(fullPath, { recursive: true, force: true });
-          console.log(`Removed old channel: ${file}`);
+          console.log(`[CLEANUP] Removed old channel: ${file}`);
         } else if (file.endsWith('.zip') && file.match(/^.+\.\d+\.zip$/)) {
           fs.unlinkSync(fullPath);
-          console.log(`Deleted old channel ZIP: ${file}`);
+          console.log(`[CLEANUP] Deleted old channel ZIP: ${file}`);
         }
       });
     } catch (error) {
@@ -312,7 +337,7 @@ class ChannelManager {
   updateCurrentChannelTracker(channelInfo) {
     const trackerPath = path.join(this.contentDir, 'current-channel.json');
     fs.writeFileSync(trackerPath, JSON.stringify(channelInfo, null, 2));
-    console.log(`Updated current channel tracker: ${channelInfo.name}`);
+    console.log(`[CHANNEL] Updated current channel tracker: ${channelInfo.path}`);
   }
 
   getApiBase(environment) {
