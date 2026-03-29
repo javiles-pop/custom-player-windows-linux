@@ -40,6 +40,8 @@ function getFileExtension(url, contentType, fallbackType) {
     'audio/mpeg': '.mp3', 'audio/mp3': '.mp3',
     'application/pdf': '.pdf',
     'application/vnd.ms-powerpoint': '.ppt', 'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    'application/vnd.ms-excel': '.xls', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'application/msword': '.doc', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
     'application/x-dsapp': '.dsapp', 'application/octet-stream': '.dsapp',
     'text/html': '.html', 'application/xhtml+xml': '.html',
     'font/ttf': '.ttf', 'application/x-font-ttf': '.ttf', 'font/opentype': '.otf', 'application/x-font-opentype': '.otf',
@@ -90,7 +92,29 @@ app.post('/channel/download', express.json(), async (req, res) => {
   try {
     const { channelId, companyId, token } = req.body;
     
-    const downloadUrl = `https://api.eu1.fwicloud.com/channels/v1/companies/${companyId}/channels/${channelId}/download`;
+    // Determine API URL based on environment
+    const environment = process.env.ENVIRONMENT || 'dev';
+    const cloudEnv = process.env.CLOUD_ENV || 'cloudtest1';
+    let apiBaseUrl;
+    
+    if (environment === 'dev') {
+      apiBaseUrl = `https://api-${cloudEnv}.fwi-dev.com`;
+    } else if (environment === 'staging') {
+      apiBaseUrl = 'https://api-staging.fwi-dev.com';
+    } else if (environment === 'prod') {
+      apiBaseUrl = 'https://api.fwicloud.com';
+    } else if (environment === 'prod-ap') {
+      apiBaseUrl = 'https://api.ap1.fwicloud.com';
+    } else if (environment === 'prod-eu') {
+      apiBaseUrl = 'https://api.eu1.fwicloud.com';
+    } else {
+      apiBaseUrl = 'https://api-cloudtest1.fwi-dev.com'; // Default to cloudtest1
+    }
+    
+    const downloadUrl = `${apiBaseUrl}/channels/v1/companies/${companyId}/channels/${channelId}/download`;
+    console.log('Environment:', environment);
+    console.log('Cloud Environment:', cloudEnv);
+    console.log('API Base URL:', apiBaseUrl);
     console.log('Fetching:', downloadUrl);
     
     const response = await fetch(downloadUrl, {
